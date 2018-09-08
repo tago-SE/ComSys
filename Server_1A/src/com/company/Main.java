@@ -36,8 +36,9 @@ public class Main {
     }
     */
 
-    static void response(Socket socket, Host host, String s) {
-
+    public static DatagramPacket CreatePacket(Host client, String msg) throws UnsupportedEncodingException {
+        byte[] data = msg.getBytes("UTF-8");
+        return new DatagramPacket(data, data.length, client.address, client.port);
     }
 
     public static void main(String[] args) {
@@ -46,6 +47,8 @@ public class Main {
             System.err.println("Argument error!");
             System.exit(1);
         }
+
+
         Host server = null;
         DatagramSocket socket = null;
         try {
@@ -71,20 +74,21 @@ public class Main {
             try {
                 socket.receive(recievePacket);
                 Host newHost = new Host(recievePacket.getAddress(), recievePacket.getPort());
+
                 // Block multiple connections
                 if (client != null && newHost.address != client.address) {
-
+                    socket.send(CreatePacket(client, "Server is already in use."));
                 }
+
+
                 client = newHost;
-
-
                 String recv = new String(recievePacket.getData(), 0, recievePacket.getLength());
                 System.out.println("RECEIVED: " + recv);
 
-                String send = "polo";
-                byte[] sendData = send.getBytes("UTF-8");
-                DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, client.address, client.port);
-                socket.send(sendPacket);
+
+                socket.send(CreatePacket(client, "polo"));
+
+
 
             } catch (IOException e) {
                 e.printStackTrace();
