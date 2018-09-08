@@ -78,7 +78,7 @@ public class Main {
 
                 // Block multiple connections
                 if (client != null && newHost.address != client.address) {
-                    socket.send(CreatePacket(client, "Server is already in use."));
+                    socket.send(CreatePacket(newHost, "Server is already in use."));
                 }
 
 
