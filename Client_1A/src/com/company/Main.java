@@ -6,6 +6,7 @@ import java.net.*;
 public class Main {
 
     public static void main(String[] args) throws IOException {
+        System.out.println("testing with gitignore");
         // get a datagram socket
         DatagramSocket socket = null;
         try {
