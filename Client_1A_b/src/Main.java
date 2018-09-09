@@ -12,7 +12,8 @@ public class Main {
     public static void main(String[] args) throws IOException {
 
         Scanner scan = new Scanner(System.in);
-        String sendHello, receivedResponse, gameInput, sendStart;
+        int guesses;
+        String sendHello, receivedResponse, gameInput, sendStart, receivedWord;
         boolean run;
         DatagramSocket socket = null;
 
@@ -32,13 +33,11 @@ public class Main {
             byte[] buffer = sendHello.getBytes();
             InetAddress address = InetAddress.getByName("localhost"); //change to commandline arguments?
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, 4445);
-
             socket.send(packet);
 
             // get response
             byte[] response = new byte[4096];
             packet = new DatagramPacket(response, response.length);
-
             socket.receive(packet);
 
             receivedResponse = new String(packet.getData(), 0, packet.getLength());
@@ -49,9 +48,19 @@ public class Main {
                 System.exit(1);
             }
 
+            //send "START" packet
             sendStart = scan.nextLine();
             byte[] sendStartBuffer = sendStart.getBytes();
             packet = new DatagramPacket(sendStartBuffer, sendStartBuffer.length);
+            socket.send(packet);
+
+            //recieve "READY x"packet"
+            byte [] ready = new byte[4096];
+            packet = new DatagramPacket(ready, ready.length);
+            socket.receive(packet);
+
+            receivedWord = new String(packet.getData(), 0, packet.getLength());
+            guesses = receivedWord.charAt(receivedWord.length() - 1);
 
 
         } catch (IOException ioExc){
