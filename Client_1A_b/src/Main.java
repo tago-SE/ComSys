@@ -14,7 +14,7 @@ public class Main {
         Scanner scan = new Scanner(System.in);
         int guesses;
         String sendHello, receivedResponse, gameInput, sendStart, receivedWord;
-        boolean run;
+        boolean run = false;
         DatagramSocket socket = null;
 
         // get a datagram socket
@@ -54,13 +54,37 @@ public class Main {
             packet = new DatagramPacket(sendStartBuffer, sendStartBuffer.length);
             socket.send(packet);
 
-            //recieve "READY x"packet"
-            byte [] ready = new byte[4096];
+            //recieve "READY x" packet
+            byte[] ready = new byte[4096];
             packet = new DatagramPacket(ready, ready.length);
             socket.receive(packet);
 
             receivedWord = new String(packet.getData(), 0, packet.getLength());
-            guesses = receivedWord.charAt(receivedWord.length() - 1);
+
+            if (receivedWord.substring(0,5).equals("ERROR")){
+                System.out.println(receivedWord.substring(0, 5));
+                System.exit(1);
+            }
+
+            guesses = receivedWord.charAt(receivedWord.length() - 1) * 2;
+
+            while (run){
+
+                //input & send the guess
+                gameInput = scan.nextLine();
+                byte[] guessBuffer = gameInput.getBytes();
+                packet = new DatagramPacket(guessBuffer, guessBuffer.length);
+                socket.send(packet);
+                guesses--;
+
+                //receive result of the progress
+                byte[] resultBuffer = new byte[4096];
+                packet = new DatagramPacket(resultBuffer, resultBuffer.length);
+                socket.receive(packet);
+                //unsure on how to handle the result, (strings? char array? etc)
+
+
+            }
 
 
         } catch (IOException ioExc){
