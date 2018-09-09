@@ -28,6 +28,9 @@ public class Main {
 
 
     public static void main(String[] args) {
+
+        System.out.println("testing server with git");
+
         if (args.length != 1 || !args[0].matches("[a-zA-Z]+")){
             (new IllegalArgumentException()).printStackTrace();
             System.exit(1);

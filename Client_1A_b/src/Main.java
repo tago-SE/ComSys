@@ -52,7 +52,6 @@ public class Main {
             sendStart = scan.nextLine();
             byte[] sendStartBuffer = sendStart.getBytes();
             packet = new DatagramPacket(sendStartBuffer, sendStartBuffer.length);
-            System.out.println("test");
 
 
         } catch (IOException ioExc){
