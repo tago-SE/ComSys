@@ -25,8 +25,6 @@ public class Main {
         return new DatagramPacket(data, data.length,ip, port);
     }
 
-
-
     public static void main(String[] args) {
 
         System.out.println("testing server with git");
@@ -42,6 +40,8 @@ public class Main {
             System.exit(1);
         }
 
+        System.out.println("Server running...");
+
         byte[] buffer = new byte[256];
         DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
         boolean run = true;
@@ -49,31 +49,30 @@ public class Main {
         Host prev = null;
         int guessCount = 0;
         int guessMax = args[0].length();
-        String secret = args[0];
-        boolean waitingForHello = true;
 
+        String secret = args[0];
+        String result;
+
+
+        boolean waitingForHello = true;
+        boolean waitingForStart = false;
         try {
             while (run) {
-
                 socket.receive(packet);
 
-
                 // Manage connections - one client at a time
-
                 curr = new Host(packet.getAddress(), packet.getPort());
-
                 if (prev != null && prev.address != curr.address) {
-
                     if (curr.time < prev.time + 10.000) {
-
                         socket.send(createPacket(curr.address, curr.port, "BUSY"));
-
                         continue; // Ignore client
-                    } else {
+                    }
+                    else {
                         // Terminate previous session if a new connection is
                         // accepted and the timer has expired
                         socket.send(createPacket(prev.address, prev.port, "ERROR 1"));
                         waitingForHello = true;
+                        waitingForStart = false;
                     }
                 }
 
@@ -82,32 +81,45 @@ public class Main {
                 if (waitingForHello) {
                     if (recv.equals("HELLO")) {
                         waitingForHello = false;
+                        waitingForStart = true;
                         socket.send(createPacket(curr.address, curr.port, "OK"));
-                    } else {
+                    }
+                    else {
                         socket.send(createPacket(curr.address, curr.port, "ERROR 2"));
                     }
-                } else {
-                    if (recv.equals("START")) {
-                        socket.send(createPacket(curr.address, curr.port, "READY" + secret.length()));
-                        guessCount = 0;
-                    } else if (recv.substring(0, 5).equals("GUESS")) {
-                        System.out.println("GUESS RECIEVED");
-                    } else {
-                        socket.send(createPacket(curr.address, curr.port, "ERROR 3"));
+                }
+                else if (waitingForStart) {
+                        if (recv.equals("START")) {
+                            waitingForStart = false;
+                            socket.send(createPacket(curr.address, curr.port, "READY" + secret.length()));
+                            guessCount = 0;
+                        }
+                        else {
+                            socket.send(createPacket(curr.address, curr.port, "ERROR 3"));
+                        }
+                }
+                else if (recv.length() == 7 && recv.substring(0, 5).equals("GUESS")) {
+                    String guess = recv.substring(6, 7);
+                    if (guess != null) {
+                        System.out.println("Guess received: " + guess);
                     }
+                    else {
+                        socket.send(createPacket(curr.address, curr.port, "ERROR 4"));
+                    }
+                }
+                else {
+                    socket.send(createPacket(curr.address, curr.port, "ERROR 5"));  // Invalid argument
                 }
                 prev = curr;
             }
         }
         catch (IOException e) {
             e.printStackTrace();
-            run = false;
         }
-        finally{
-
-            try{
+        finally {
+            try {
                 socket.close();
-            }catch (Exception ex){
+            } catch (Exception ex){
                 ex.printStackTrace();
                 System.exit(1);
             }
