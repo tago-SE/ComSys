@@ -14,13 +14,15 @@ public class ChatClient {
     private static int port;
 
     public static void main(String[] args) {
-
+        if (args.length != 2) {
+            System.err.println("Invalid argument.");
+            System.exit(1);
+        }
         serverAddress = args[0];
         port = Integer.parseInt(args[1]);
         socket = null;
         in = null;
         out = null;
-
         try {
 
             socket = new Socket(serverAddress, port);
