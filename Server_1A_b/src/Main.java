@@ -21,15 +21,10 @@ public class Main {
         Ready, WaitingForHello, WaitingForStart, WaitingForGuess;
     }
 
-    /*
-    public static DatagramPacket createPacket(InetAddress ip, int port, String msg) throws UnsupportedEncodingException {
-        byte[] data = msg.getBytes("UTF-8");
-        return new DatagramPacket(data, data.length,ip, port);
-    }*/
-
     public static void response(String msg, InetAddress ip, int port) throws IOException {
         byte[] data = msg.getBytes("UTF-8");
         socket.send(new DatagramPacket(data, data.length,ip, port));
+        System.out.println("Response: " + msg + " " + ip + ":" + port);
     }
 
     public static char[] scrambleSecretWord(String secretWord) {
@@ -70,8 +65,6 @@ public class Main {
             System.exit(1);
         }
 
-        System.out.println("Server running...");
-
         byte[] buffer = new byte[256];
         DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 
@@ -89,31 +82,32 @@ public class Main {
             while (run) {
                 if (state == State.Ready) {
                     prev = null;
+                    System.out.println("State: " + state);
                     state = State.WaitingForHello;
                     System.out.println("State: " + state);
                 }
 
                 socket.receive(packet);
+                String recv = new String(packet.getData(), 0, packet.getLength());
+                System.out.println("Received: " + recv + " " + packet.getAddress() + ":" + packet.getPort());
 
                 // Manage connections - one client at a time
                 curr = new Host(packet.getAddress(), packet.getPort());
                 if (prev != null && prev.address != curr.address) {
                     if (curr.time < prev.time + 10.000) {
                         response("BUSY", curr.address, curr.port);
-                        System.out.println("Ignored new client.");
                         continue; // Ignore client
                     }
                     else {
                         // Terminate previous session if a new connection is
                         // accepted and the timer has expired
                         response("DROPPED", prev.address, prev.port);
-                        System.out.println("Previous client dropped due to timeout.");
                         state = State.WaitingForHello;
                         System.out.println("State: " + state);
                     }
                 }
 
-                String recv = new String(packet.getData(), 0, packet.getLength());
+
 
                 switch (state) {
 
@@ -144,12 +138,11 @@ public class Main {
                     case WaitingForGuess: {
                         if (recv.length() == 7 && recv.substring(0, 5).equals("GUESS") && remaining > 0) {
                             char guess = recv.charAt(6);
-                            System.out.println("Guess received: " + guess);
+                            System.out.println("Guess: " + guess);
                             if (!guess(secretWord, guess, output)) {
                                 remaining--;
                             }
                             String reply = new String(output) + " " + remaining;
-                            System.out.println("Response: " + reply);
                             response(reply, curr.address, curr.port);
                             if (isComplete(output) || remaining == 0) {
                                 state = State.Ready;
