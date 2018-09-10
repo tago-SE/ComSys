@@ -124,6 +124,7 @@ public class Main {
                             response("OK", curr.address, curr.port);
                         } else {
                             response("ERROR 1", curr.address, curr.port);
+                            state = State.Ready;
                         }
                     } break;
 
@@ -136,6 +137,7 @@ public class Main {
                             response("READY" + secretWord.length(), curr.address, curr.port);
                         } else {
                             response("ERROR 2", curr.address, curr.port);
+                            state = State.Ready;
                         }
                     } break;
 
@@ -154,6 +156,7 @@ public class Main {
                             }
                         } else {
                             response("ERROR 3", curr.address, curr.port);
+                            state = State.Ready;
                         }
                     } break;
 
