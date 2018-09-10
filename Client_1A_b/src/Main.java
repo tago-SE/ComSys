@@ -112,31 +112,19 @@ public class Main {
                     throw new WrongInputException();
                 }
                 System.out.println(gameResult);
-                remaining = Integer.parseInt(gameResult.substring(gameResult.length() - 1, gameResult.length()));
-                System.out.println("CHECKING REMAINING INT: " + remaining);
-                //unsure on how to handle the result, (strings? char array? etc)
+                remaining = Integer.parseInt(gameResult.substring(gameResult.length() - 1));
+                //System.out.println("CHECKING REMAINING INT: " + remaining);
 
-                // Results have the following form:
-                //
-                // a**** 5 // 5 being the remaining guesses, if 0 you've lost. To extract it:
-                // output = recv.substring(0, secretWord.length())
-                // remaining = Integer.parseInt(recv.charAt(
+                if (remaining == 0){
+                    System.out.println("You lose!");
+                    run = false;
+                }
 
-                /* Example
-                int secretWordLength = 5;   // Should be declared after HELLO or so
-                String recv = "a**** 5";
-                String output = recv.substring(0, secretWordLength);
-                int remaining = Integer.parseInt(recv.substring(secretWordLength + 1, secretWordLength + 2));
-                System.out.println("remaining: " + remaining);
-                System.out.println("output: " + output);
-                if (remaining == 0) {
-                    if (isComplete(output)) {
-                        System.out.println("You've won!");
-                    }
-                    else {
-                        System.out.println("You've lost");
-                    }
-                }*/
+                if (isComplete(gameResult)){
+                        System.out.println("You win!");
+                        run = false;
+                }
+
             }
         }catch (WrongInputException e){
             System.out.println("Wrong guess input, exiting");
