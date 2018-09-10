@@ -93,8 +93,9 @@ public class Main {
 
                 // Manage connections - one client at a time
                 curr = new Host(packet.getAddress(), packet.getPort());
-                if (prev != null && prev.address != curr.address) {
-                    if (curr.time < prev.time + 10.000) {
+
+                if (prev != null && !prev.address.equals(curr.address)) {
+                    if (curr.time - prev.time < 10000) {
                         response("BUSY", curr.address, curr.port);
                         continue; // Ignore client
                     }
@@ -136,7 +137,6 @@ public class Main {
                     case WaitingForGuess: {
                         if (recv.length() == 7 && recv.substring(0, 5).equals("GUESS") && remaining > 0) {
                             char guess = recv.charAt(6);
-                            System.out.println("Guess: " + guess);
                             if (!guess(secretWord, guess, output)) {
                                 remaining--;
                             }

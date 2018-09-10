@@ -4,6 +4,9 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class ChatServer extends Thread {
 
@@ -11,9 +14,13 @@ public class ChatServer extends Thread {
     private static ServerSocket serverSocket = null;
     private static final String DEFAULT_NICKNAME = "Unknown";
 
-    public class Client {
+    private static List<Client> clients;
+
+    public static class Client {
         String nickname = DEFAULT_NICKNAME;
         Socket socket = null;
+        BufferedReader in = null;
+        PrintWriter out = null;
     }
 
     /*
@@ -33,8 +40,10 @@ public class ChatServer extends Thread {
     / <response: invalid command
      */
 
-    private void broadcast(String msg) {
-
+    private static void broadcast(String msg) {
+        for (Client client: clients) {
+            client.out.println(msg);
+        }
     }
 
     public void run() {
@@ -53,22 +62,22 @@ public class ChatServer extends Thread {
         try {
             System.out.println("Waiting for client...");
             client.socket = serverSocket.accept();
+            clients.add(client);
             new ChatServer().start();
         } catch (IOException e) {
             System.err.println("Failed to accept client.");
             new ChatServer().start();
             return;
         }
-        BufferedReader in = null;
-        PrintWriter out = null;
+
         try {
-            in = new BufferedReader(new InputStreamReader(client.socket.getInputStream()));
-            out = new PrintWriter(client.socket.getOutputStream(), true);
+            client.in = new BufferedReader(new InputStreamReader(client.socket.getInputStream()));
+            client.out = new PrintWriter(client.socket.getOutputStream(), true);
 
             String received;
-            while ((received = in.readLine()) != null) {
+            while ((received = client.in.readLine()) != null) {
                 System.out.println("Received: " + received);
-                out.println("Echo: " + received);
+                broadcast("Broadcasting [" + received + "]");
             }
 
         } catch (IOException e) {
@@ -76,10 +85,10 @@ public class ChatServer extends Thread {
 
         } finally {
             try {
-                if (in != null)
-                    in.close();
-                if (out != null)
-                    out.close();
+                if (client.in != null)
+                    client.in.close();
+                if (client.out != null)
+                    client.out.close();
                 if (client.socket != null)
                     client.socket.close();
             } catch (IOException e) {
@@ -89,6 +98,7 @@ public class ChatServer extends Thread {
     }
 
     public static void main(String[] args) {
+        clients = Collections.synchronizedList(new ArrayList<>());
         new ChatServer().start();
     }
 }
