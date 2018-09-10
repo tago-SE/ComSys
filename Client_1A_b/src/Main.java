@@ -19,6 +19,10 @@ public class Main {
         }
     }
 
+    private static class ClientDisconnectedException extends Exception {
+        ClientDisconnectedException(){ super();}
+    }
+
     static class WrongInputException extends Exception{
         WrongInputException(){
             super();
@@ -76,7 +80,8 @@ public class Main {
                 run = true;
             } else if (receivedResponse.equals("BUSY")) {
                 throw new BusyException();
-            }
+            } else if (receivedResponse.equals("DROPPED"))
+                throw new ClientDisconnectedException();
 
             //send "START" packet
             System.out.println("Connection established! Type START to begin!");
@@ -96,7 +101,9 @@ public class Main {
             if (receivedWord.substring(0,5).equals("ERROR")){
                 System.out.println("Response: " + receivedWord.substring(0,5));
                 throw new Exception();
-            } else{
+            } else if (receivedWord.equals("DROPPED"))
+                throw new ClientDisconnectedException();
+            else{
                 System.out.println("Response: " + receivedWord);
             }
 
@@ -117,7 +124,8 @@ public class Main {
                 if (gameResult.substring(0,5).equals("ERROR")){
                     System.out.println(gameResult.substring(0,5));
                     throw new WrongInputException();
-                }
+                } else if (gameResult.equals("DROPPED"))
+                    throw new ClientDisconnectedException();
                 System.out.println(gameResult);
                 remaining = Integer.parseInt(gameResult.substring(gameResult.length() - 1));
                 //System.out.println("CHECKING REMAINING INT: " + remaining);
@@ -139,6 +147,8 @@ public class Main {
         } catch (BusyException e){
             System.out.println("Server is busy, exiting");
             e.printStackTrace();
+        } catch (ClientDisconnectedException e){
+            System.out.println("You've been away for too long, disconnecting");
         } catch (SocketTimeoutException e){
             System.out.println("Response from server time out");
             e.printStackTrace();
