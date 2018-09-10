@@ -3,6 +3,8 @@ import java.net.*;
 
 public class Main {
 
+    private static DatagramSocket socket;
+
     static class Host {
         int port;
         InetAddress address;
@@ -15,9 +17,19 @@ public class Main {
         }
     }
 
+    enum State {
+        Ready, WaitingForHello, WaitingForStart, WaitingForGuess;
+    }
+
+    /*
     public static DatagramPacket createPacket(InetAddress ip, int port, String msg) throws UnsupportedEncodingException {
         byte[] data = msg.getBytes("UTF-8");
         return new DatagramPacket(data, data.length,ip, port);
+    }*/
+
+    public static void response(String msg, InetAddress ip, int port) throws IOException {
+        byte[] data = msg.getBytes("UTF-8");
+        socket.send(new DatagramPacket(data, data.length,ip, port));
     }
 
     public static char[] scrambleSecretWord(String secretWord) {
@@ -47,13 +59,11 @@ public class Main {
     }
 
     public static void main(String[] args) {
-
         if (args.length != 1 || !args[0].matches("[a-zA-Z]+")){
             (new IllegalArgumentException()).printStackTrace();
             System.exit(1);
         }
 
-        DatagramSocket socket = null;
         try {
             socket = new DatagramSocket(4445);
         } catch (SocketException e) {
@@ -68,80 +78,89 @@ public class Main {
         boolean run = true;
         Host curr;
         Host prev = null;
-        int guessCount = 0;
         int remaining = 0;
 
         String secretWord = args[0];
         char[] output = null;
 
-        boolean waitingForHello = true;
-        boolean waitingForStart = false;
+        State state = State.Ready;
 
         try {
             while (run) {
+                if (state == State.Ready) {
+                    prev = null;
+                    state = State.WaitingForHello;
+                    System.out.println("State: " + state);
+                }
+
                 socket.receive(packet);
 
                 // Manage connections - one client at a time
                 curr = new Host(packet.getAddress(), packet.getPort());
                 if (prev != null && prev.address != curr.address) {
                     if (curr.time < prev.time + 10.000) {
-                        socket.send(createPacket(curr.address, curr.port, "BUSY"));
+                        response("BUSY", curr.address, curr.port);
+                        System.out.println("Ignored new client.");
                         continue; // Ignore client
                     }
                     else {
                         // Terminate previous session if a new connection is
                         // accepted and the timer has expired
-                        socket.send(createPacket(prev.address, prev.port, "ERROR 1"));
-                        waitingForHello = true;
-                        waitingForStart = false;
+                        response("DROPPED", prev.address, prev.port);
+                        System.out.println("Previous client dropped due to timeout.");
+                        state = State.WaitingForHello;
+                        System.out.println("State: " + state);
                     }
                 }
 
                 String recv = new String(packet.getData(), 0, packet.getLength());
 
-                if (waitingForHello) {
-                    if (recv.equals("HELLO")) {
-                        waitingForHello = false;
-                        waitingForStart = true;
-                        socket.send(createPacket(curr.address, curr.port, "OK"));
-                    }
-                    else {
-                        socket.send(createPacket(curr.address, curr.port, "ERROR 2"));
-                    }
-                }
-                else if (waitingForStart) {
+                switch (state) {
+
+                    case WaitingForHello: {
+                        if (recv.equals("HELLO")) {
+                            state = State.WaitingForStart;
+                            System.out.println("State: " + state);
+                            response("OK", curr.address, curr.port);
+                        } else {
+                            response("ERROR 1", curr.address, curr.port);
+                        }
+                    } break;
+
+                    case WaitingForStart: {
                         if (recv.equals("START")) {
-                            waitingForStart = false;
+                            state = State.WaitingForGuess;
+                            System.out.println("State: " + state);
                             remaining = secretWord.length();
-
-                            guessCount = 0;
-
                             output = scrambleSecretWord(secretWord);
-                            socket.send(createPacket(curr.address, curr.port, "READY" + secretWord.length()));
+                            response("READY" + secretWord.length(), curr.address, curr.port);
+                        } else {
+                            response("ERROR 2", curr.address, curr.port);
                         }
-                        else {
-                            socket.send(createPacket(curr.address, curr.port, "ERROR 3"));
+                    } break;
+
+                    case WaitingForGuess: {
+                        if (recv.length() == 7 && recv.substring(0, 5).equals("GUESS") && remaining > 0) {
+                            char guess = recv.charAt(6);
+                            System.out.println("Guess received: " + guess);
+                            if (!guess(secretWord, guess, output)) {
+                                remaining--;
+                            }
+                            String reply = new String(output) + " " + remaining;
+                            System.out.println("Response: " + reply);
+                            response(reply, curr.address, curr.port);
+                            if (isComplete(output) || remaining == 0) {
+                                state = State.Ready;
+                            }
+                        } else {
+                            response("ERROR 3", curr.address, curr.port);
                         }
-                }
-                else if (recv.length() == 7 && recv.substring(0, 5).equals("GUESS") && remaining > 0) {
-                    char guess = recv.charAt(6);
-                    System.out.println("Guess received: " + guess);
-                    if (!guess(secretWord, guess, output)) {
-                        remaining--;
-                        System.out.println("Incorrect. Remaining guesses: " + remaining);
+                    } break;
+
+                    default: {
+                        response("ERROR 4", curr.address, curr.port);
+                        state = State.Ready;
                     }
-                    else {
-                        System.out.println("Correct. Remaining guesses: " + remaining);
-                    }
-                    socket.send(createPacket(curr.address, curr.port, new String(output) + " " + remaining));
-                    if (isComplete(output) || remaining == 0) {
-                        waitingForHello = true;
-                        waitingForStart = false;
-                        curr = null;
-                    }
-                }
-                else {
-                    socket.send(createPacket(curr.address, curr.port, "ERROR 5"));  // Invalid argument
                 }
                 prev = curr;
             }
