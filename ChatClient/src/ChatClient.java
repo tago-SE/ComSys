@@ -18,6 +18,7 @@ public class ChatClient {
             System.err.println("Invalid argument.");
             System.exit(1);
         }
+
         serverAddress = args[0];
         port = Integer.parseInt(args[1]);
         socket = null;
