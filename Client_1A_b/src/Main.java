@@ -27,7 +27,14 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
 
+        if (args.length != 2){
+            System.out.println("Usage: java Main <host name> <port number>");
+            System.exit(1);
+        }
+
         Scanner scan = new Scanner(System.in);
+        String IPAddress = args[0];
+        int portNumber = Integer.parseInt(args[1]);
 
         String sendHello, receivedResponse, gameInput, sendStart, receivedWord, gameResult;
         int remaining;
@@ -54,8 +61,8 @@ public class Main {
                 throw new Exception();
             }
             byte[] buffer = sendHello.getBytes();
-            InetAddress address = InetAddress.getByName("localhost"); //change to commandline arguments?
-            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, 4445);
+            InetAddress address = InetAddress.getByName(IPAddress); //change to commandline arguments?
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, portNumber);
             socket.send(packet);
 
             // get response
@@ -75,7 +82,7 @@ public class Main {
             System.out.println("Connection established! Type START to begin!");
             sendStart = scan.nextLine();
             byte[] sendStartBuffer = sendStart.getBytes();
-            packet = new DatagramPacket(sendStartBuffer, sendStartBuffer.length, address, 4445);
+            packet = new DatagramPacket(sendStartBuffer, sendStartBuffer.length, address, portNumber);
             socket.send(packet);
 
             //recieve "READY x" packet
@@ -99,7 +106,7 @@ public class Main {
                 System.out.println("Make a guess (GUESS <letter>:");
                 gameInput = scan.nextLine();
                 byte[] guessBuffer = gameInput.getBytes();
-                packet = new DatagramPacket(guessBuffer, guessBuffer.length, address, 4445);
+                packet = new DatagramPacket(guessBuffer, guessBuffer.length, address, portNumber);
                 socket.send(packet);
 
                 //receive result of the progress
