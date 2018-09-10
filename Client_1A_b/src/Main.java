@@ -9,6 +9,10 @@ import java.util.Scanner;
 
 public class Main {
 
+    public static boolean isComplete(String output) {
+       return !output.contains("*");
+    }
+
     public static void main(String[] args) throws IOException {
 
         Scanner scan = new Scanner(System.in);
@@ -75,7 +79,7 @@ public class Main {
                 byte[] guessBuffer = gameInput.getBytes();
                 packet = new DatagramPacket(guessBuffer, guessBuffer.length);
                 socket.send(packet);
-                guesses--;
+                guesses--;          // server sends you remaining guesses. Unecessary.
 
                 //receive result of the progress
                 byte[] resultBuffer = new byte[4096];
@@ -83,21 +87,38 @@ public class Main {
                 socket.receive(packet);
                 //unsure on how to handle the result, (strings? char array? etc)
 
+                // Results have the following form:
+                //
+                // a**** 5 // 5 being the remaining guesses, if 0 you've lost. To extract it:
+                // output = recv.substring(0, secretWord.length())
+                // remaining = Integer.parseInt(recv.charAt(
+
+                // Example
+                int secretWordLength = 5;   // Should be declared after HELLO or so
+                String recv = "a**** 5";
+                String output = recv.substring(0, secretWordLength);
+                int remaining = Integer.parseInt(recv.substring(secretWordLength + 1, secretWordLength + 2));
+                System.out.println("remaining: " + remaining);
+                System.out.println("output: " + output);
+                if (remaining == 0) {
+                    if (isComplete(output)) {
+                        System.out.println("You've won!");
+                    }
+                    else {
+                        System.out.println("You've lost");
+                    }
+                }
 
             }
-
-
-        } catch (IOException ioExc){
-
-            ioExc.printStackTrace();
+        } catch (IOException e){
+            e.printStackTrace();
             System.exit(1);
         }
         finally{
-
             try{
                 socket.close();
-            } catch (Exception ex){
-                ex.printStackTrace();
+            } catch (Exception e){
+                e.printStackTrace();
                 System.exit(1);
             }
         }

@@ -27,8 +27,6 @@ public class Main {
         return new DatagramPacket(data, data.length,ip, port);
     }
 
-
-
     public static void main(String[] args) {
         if (args.length != 1 || !args[0].matches("[a-zA-Z]+")){
             (new IllegalArgumentException()).printStackTrace();
