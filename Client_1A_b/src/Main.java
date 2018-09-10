@@ -16,6 +16,7 @@ public class Main {
     public static void main(String[] args) throws IOException {
 
         Scanner scan = new Scanner(System.in);
+
         int guesses;
         String sendHello, receivedResponse, gameInput, sendStart, receivedWord;
         boolean run = false;
@@ -66,7 +67,7 @@ public class Main {
             receivedWord = new String(packet.getData(), 0, packet.getLength());
 
             if (receivedWord.substring(0,5).equals("ERROR")){
-                System.out.println(receivedWord.substring(0, 5));
+                System.out.println(receivedWord);
                 System.exit(1);
             }
 

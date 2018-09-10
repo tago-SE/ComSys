@@ -107,8 +107,6 @@ public class Main {
                     }
                 }
 
-
-
                 switch (state) {
 
                     case WaitingForHello: {
