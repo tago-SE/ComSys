@@ -13,11 +13,16 @@ public class Main {
        return !output.contains("*");
     }
 
-    public static void main(String[] args) throws IOException {
+    static class BusyException extends Exception{
+        BusyException(){
+            super();
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
 
         Scanner scan = new Scanner(System.in);
 
-        int guesses;
         String sendHello, receivedResponse, gameInput, sendStart, receivedWord;
         boolean run = false;
         DatagramSocket socket = null;
@@ -34,6 +39,7 @@ public class Main {
 
             socket.setSoTimeout(3000);
             // send request
+            System.out.println("Welcome to Guess the Word! Connect to the server by sending a HELLO");
             sendHello = scan.nextLine();
             byte[] buffer = sendHello.getBytes();
             InetAddress address = InetAddress.getByName("localhost"); //change to commandline arguments?
@@ -46,17 +52,17 @@ public class Main {
             socket.receive(packet);
 
             receivedResponse = new String(packet.getData(), 0, packet.getLength());
+            System.out.println("Response: " + receivedResponse);
             if (receivedResponse.equals("OK")) {
                 run = true;
-                System.out.println("Run set to true");
             } else if (receivedResponse.equals("BUSY")) {
-                System.exit(1);
+                throw new BusyException();
             }
 
             //send "START" packet
             sendStart = scan.nextLine();
             byte[] sendStartBuffer = sendStart.getBytes();
-            packet = new DatagramPacket(sendStartBuffer, sendStartBuffer.length);
+            packet = new DatagramPacket(sendStartBuffer, sendStartBuffer.length, address, 4445);
             socket.send(packet);
 
             //recieve "READY x" packet
@@ -65,22 +71,20 @@ public class Main {
             socket.receive(packet);
 
             receivedWord = new String(packet.getData(), 0, packet.getLength());
+            System.out.println("Response: " + receivedWord);
 
             if (receivedWord.substring(0,5).equals("ERROR")){
                 System.out.println(receivedWord);
-                System.exit(1);
+                throw new Exception();
             }
-
-            guesses = receivedWord.charAt(receivedWord.length() - 1) * 2;
 
             while (run){
 
                 //input & send the guess
                 gameInput = scan.nextLine();
                 byte[] guessBuffer = gameInput.getBytes();
-                packet = new DatagramPacket(guessBuffer, guessBuffer.length);
+                packet = new DatagramPacket(guessBuffer, guessBuffer.length, address, 4445);
                 socket.send(packet);
-                guesses--;          // server sends you remaining guesses. Unecessary.
 
                 //receive result of the progress
                 byte[] resultBuffer = new byte[4096];
@@ -94,7 +98,7 @@ public class Main {
                 // output = recv.substring(0, secretWord.length())
                 // remaining = Integer.parseInt(recv.charAt(
 
-                // Example
+                /* Example
                 int secretWordLength = 5;   // Should be declared after HELLO or so
                 String recv = "a**** 5";
                 String output = recv.substring(0, secretWordLength);
@@ -108,12 +112,20 @@ public class Main {
                     else {
                         System.out.println("You've lost");
                     }
-                }
-
+                }*/
             }
-        } catch (IOException e){
+        } catch (BusyException e){
+            System.out.println("Server is busy, exiting");
             e.printStackTrace();
-            System.exit(1);
+        } catch (SocketTimeoutException e){
+            System.out.println("Response from server time out");
+            e.printStackTrace();
+        } catch (IOException e){
+            System.out.println("ERROR exception caught here 1");
+            e.printStackTrace();
+        } catch (Exception e){
+            System.out.println("ERROR EXCEPTION CAUGHT HERE 2");
+            e.printStackTrace();
         }
         finally{
             try{
