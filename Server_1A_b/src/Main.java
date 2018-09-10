@@ -127,7 +127,11 @@ public class Main {
                     char guess = recv.charAt(6);
                     System.out.println("Guess received: " + guess);
                     if (!guess(secretWord, guess, output)) {
-                        remaining--;   // incorrect guess, increase counter
+                        remaining--;
+                        System.out.println("Incorrect. Remaining guesses: " + remaining);
+                    }
+                    else {
+                        System.out.println("Correct. Remaining guesses: " + remaining);
                     }
                     socket.send(createPacket(curr.address, curr.port, new String(output) + " " + remaining));
                     if (isComplete(output) || remaining == 0) {
