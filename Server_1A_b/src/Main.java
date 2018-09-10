@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 import java.io.*;
 import java.net.*;
 
@@ -25,14 +20,39 @@ public class Main {
         return new DatagramPacket(data, data.length,ip, port);
     }
 
-    public static void main(String[] args) {
+    public static char[] scrambleSecretWord(String secretWord) {
+        String s = "";
+        for (int i = 0; i < secretWord.length(); i++) {
+            s += "*";
+        }
+        return s.toCharArray();
+    }
 
-        System.out.println("testing server with git");
+    public static boolean guess(String secretWord,  char guess, char[] output) {
+        boolean changed = false;
+        for (int i = 0; i < secretWord.length(); i++) {
+            if (secretWord.charAt(i) == guess) {
+                output[i] = guess;
+                changed = true;
+            }
+        }
+        return changed;
+    }
+
+    public static boolean isComplete(char[] output) {
+        for (int i = 0; i < output.length; i++)
+            if (output[i] == '*')
+                return false;
+        return true;
+    }
+
+    public static void main(String[] args) {
 
         if (args.length != 1 || !args[0].matches("[a-zA-Z]+")){
             (new IllegalArgumentException()).printStackTrace();
             System.exit(1);
         }
+
         DatagramSocket socket = null;
         try {
             socket = new DatagramSocket(4445);
@@ -44,18 +64,19 @@ public class Main {
 
         byte[] buffer = new byte[256];
         DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+
         boolean run = true;
         Host curr;
         Host prev = null;
         int guessCount = 0;
-        int guessMax = args[0].length();
+        int remaining = 0;
 
-        String secret = args[0];
-        String result;
-
+        String secretWord = args[0];
+        char[] output = null;
 
         boolean waitingForHello = true;
         boolean waitingForStart = false;
+
         try {
             while (run) {
                 socket.receive(packet);
@@ -91,20 +112,28 @@ public class Main {
                 else if (waitingForStart) {
                         if (recv.equals("START")) {
                             waitingForStart = false;
-                            socket.send(createPacket(curr.address, curr.port, "READY" + secret.length()));
+                            remaining = secretWord.length();
+
                             guessCount = 0;
+
+                            output = scrambleSecretWord(secretWord);
+                            socket.send(createPacket(curr.address, curr.port, "READY" + secretWord.length()));
                         }
                         else {
                             socket.send(createPacket(curr.address, curr.port, "ERROR 3"));
                         }
                 }
-                else if (recv.length() == 7 && recv.substring(0, 5).equals("GUESS")) {
-                    String guess = recv.substring(6, 7);
-                    if (guess != null) {
-                        System.out.println("Guess received: " + guess);
+                else if (recv.length() == 7 && recv.substring(0, 5).equals("GUESS") && remaining > 0) {
+                    char guess = recv.charAt(6);
+                    System.out.println("Guess received: " + guess);
+                    if (!guess(secretWord, guess, output)) {
+                        remaining--;   // incorrect guess, increase counter
                     }
-                    else {
-                        socket.send(createPacket(curr.address, curr.port, "ERROR 4"));
+                    socket.send(createPacket(curr.address, curr.port, new String(output) + " " + remaining));
+                    if (isComplete(output) || remaining == 0) {
+                        waitingForHello = true;
+                        waitingForStart = false;
+                        curr = null;
                     }
                 }
                 else {
