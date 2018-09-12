@@ -100,7 +100,7 @@ public class OneAServer {
                 // Manage connections - one client at a time
                 curr = new Host(packet.getAddress(), packet.getPort());
 
-                if (prev != null && !(prev.address.equals(curr.address)) || (prev.address.equals(curr.address) && prev.port != curr.port)) {
+                if (prev != null && (!(prev.address.equals(curr.address)) || (prev.address.equals(curr.address) && prev.port != curr.port))) {
                     if (curr.time - prev.time < 10000) {
                         response("BUSY", curr.address, curr.port);
                         continue; // Ignore client
