@@ -1,7 +1,7 @@
 import java.io.*;
 import java.net.*;
 
-public class Main {
+public class OneAServer {
 
     private static DatagramSocket socket;
 
@@ -10,10 +10,14 @@ public class Main {
         InetAddress address;
         long time;
 
+        public void timestamp() {
+            this.time = System.currentTimeMillis();
+        }
+
         public Host(InetAddress address, int port) {
             this.address = address;
             this.port = port;
-            this.time = System.currentTimeMillis();
+            timestamp();
         }
     }
 
@@ -37,8 +41,10 @@ public class Main {
 
     public static boolean guess(String secretWord,  char guess, char[] output) {
         boolean changed = false;
+        String secretLower = secretWord.toLowerCase();
+        guess = Character.toLowerCase(guess);
         for (int i = 0; i < secretWord.length(); i++) {
-            if (secretWord.charAt(i) == guess) {
+            if (secretLower.charAt(i) == guess) {
                 output[i] = guess;
                 changed = true;
             }
@@ -54,14 +60,15 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        if (args.length != 1 || !args[0].matches("[a-zA-Z]+")){
-            (new IllegalArgumentException()).printStackTrace();
-            System.exit(1);
-        }
 
+        String secretWord = null;
         try {
-            socket = new DatagramSocket(4445);
-        } catch (SocketException e) {
+            if ( !args[0].matches("[a-zA-Z]+"))
+                throw new IllegalArgumentException();
+            secretWord = args[0];
+            socket = new DatagramSocket(Integer.parseInt(args[1]));
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
             System.exit(1);
         }
 
@@ -73,7 +80,6 @@ public class Main {
         Host prev = null;
         int remaining = 0;
 
-        String secretWord = args[0];
         char[] output = null;
 
         State state = State.Ready;
@@ -115,6 +121,9 @@ public class Main {
                             state = State.WaitingForStart;
                             System.out.println("State: " + state);
                             response("OK", curr.address, curr.port);
+                            prev = curr;
+                            prev.timestamp();
+
                         } else {
                             response("ERROR 1", curr.address, curr.port);
                             state = State.Ready;
@@ -128,6 +137,7 @@ public class Main {
                             remaining = secretWord.length();
                             output = scrambleSecretWord(secretWord);
                             response("READY" + secretWord.length(), curr.address, curr.port);
+                            prev.timestamp();
                         } else {
                             response("ERROR 2", curr.address, curr.port);
                             state = State.Ready;
@@ -145,6 +155,7 @@ public class Main {
                             if (isComplete(output) || remaining == 0) {
                                 state = State.Ready;
                             }
+                            prev.timestamp();
                         } else {
                             response("ERROR 3", curr.address, curr.port);
                             state = State.Ready;
@@ -156,8 +167,10 @@ public class Main {
                         state = State.Ready;
                     }
                 }
-                prev = curr;
             }
+        }
+        catch(NumberFormatException ex){
+            System.out.println("Please provide a port number");
         }
         catch (IOException e) {
             e.printStackTrace();
