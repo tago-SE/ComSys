@@ -51,22 +51,16 @@ public class ChatClient {
     }
 
     public static void main(String[] args) {
-        if (args.length != 2) {
-            System.err.println("Invalid argument.");
-            System.exit(1);
-        }
-
-        serverAddress = args[0];
-        port = Integer.parseInt(args[1]);
         socket = null;
         in = null;
         out = null;
         Writer writer = null;
         Reader reader = null;
-
         try {
-
+            serverAddress = args[0];
+            port = Integer.parseInt(args[1]);
             socket = new Socket(serverAddress, port);
+            System.out.println("Attempting to connect to: " + serverAddress + ":" + port);
             out = new PrintWriter(socket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             userInput = new BufferedReader(new InputStreamReader(System.in));
@@ -83,7 +77,7 @@ public class ChatClient {
                 }
             }
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             System.err.println(e.getMessage());
         } finally {
             try {
@@ -91,7 +85,6 @@ public class ChatClient {
                     writer.interrupt();
                 if (reader != null)
                     reader.interrupt();
-
                 if (socket != null)
                     socket.close();
                 if (in != null)
@@ -100,9 +93,7 @@ public class ChatClient {
                     out.close();
                 if (userInput != null)
                     userInput.close();
-
                 System.out.println("Client shutdown.");
-
             } catch (IOException e) {
                 e.printStackTrace();
             }
