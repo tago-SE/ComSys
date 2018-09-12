@@ -2,8 +2,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -91,16 +93,6 @@ public class ChatServer extends Thread {
     }
 
     public void run() {
-        if (serverSocket == null) {
-            try {
-                serverSocket = new ServerSocket(default_port);
-                System.out.println("Chat server started...");
-            } catch (IOException e) {
-                e.printStackTrace();
-                System.exit(1);
-            }
-        }
-
         Client client = new Client();
         try {
             System.out.println("Waiting for client...");
@@ -160,9 +152,7 @@ public class ChatServer extends Thread {
                     client.out.close();
                 if (client.socket != null)
                     client.socket.close();
-
                 System.out.println("Terminating thread...");
-
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -170,8 +160,27 @@ public class ChatServer extends Thread {
     }
 
     public static void main(String[] args) {
-        default_port = 9595;    // Integer.parseInt(args[0]);
-        clients = Collections.synchronizedList(new ArrayList<>());
-        new ChatServer().start();
+        Socket socket = null;
+        try {
+            default_port = Integer.parseInt(args[0]);
+            serverSocket = new ServerSocket(default_port);
+            clients = Collections.synchronizedList(new ArrayList<>());
+            new ChatServer().start();
+            socket = new Socket();
+            socket.connect(new InetSocketAddress("google.com", 80));
+            System.out.println("Chat server started on: " + socket.getLocalAddress() + ":" + default_port);
+            socket.close();
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            try {
+                if (socket != null)
+                    socket.close();
+                if (serverSocket != null)
+                    serverSocket.close();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+            System.exit(1);
+        }
     }
 }
