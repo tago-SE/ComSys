@@ -2,12 +2,7 @@ import java.io.IOException;
 import java.net.*;
 import java.util.Scanner;
 
-
-import java.io.IOException;
-import java.net.*;
-import java.util.Scanner;
-
-public class Main {
+public class OneAClient {
 
     public static boolean isComplete(String output) {
        return !output.contains("*");
@@ -143,15 +138,12 @@ public class Main {
             }
         }catch (WrongInputException e){
             System.out.println("Wrong guess input, exiting");
-            e.printStackTrace();
         } catch (BusyException e){
             System.out.println("Server is busy, exiting");
-            e.printStackTrace();
         } catch (ClientDisconnectedException e){
             System.out.println("You've been away for too long, disconnecting");
         } catch (SocketTimeoutException e){
             System.out.println("Response from server time out");
-            e.printStackTrace();
         } catch (IOException e){
             System.out.println("Socket error! Exiting");
             e.printStackTrace();
