@@ -13,8 +13,8 @@ public class ChatClient extends UnicastRemoteObject implements ChatClientInt {
 
     private String name;
 
-    public ChatClient (String n) throws RemoteException {
-        name = n;
+    public ChatClient (String name) throws RemoteException {
+        this.name = name;
     }
 
     @Override
@@ -22,12 +22,7 @@ public class ChatClient extends UnicastRemoteObject implements ChatClientInt {
         System.out.println(msg);
     }
 
-    // ============================================================ \\
-
-    public void tell(String st) throws RemoteException{
-        System.out.println(st);
-    }
-
+    @Override
     public String getName() throws RemoteException{
         return name;
     }
@@ -36,19 +31,38 @@ public class ChatClient extends UnicastRemoteObject implements ChatClientInt {
         try {
             ChatClient client = new ChatClient("Tiago");
             server =(ChatServerInt) Naming.lookup("rmi://"+"localhost"+"/myabc");
-
             server.connect(client);
-
             run = true;
-
             Scanner scan = new Scanner(System.in);
             while (run) {
-                String line = scan.next();
-                server.message(client, line);
+                String msg = scan.next();
+                if (msg.length() == 0) {
+                    continue;
+                }
+                if (msg.charAt(0) == '/') {
+                    if (msg.equals("/quit")) {
+                        System.out.println("command quit");
+                    }
+                    else if (msg.equals("/whoami")) {
+                        System.out.println("Command whoami");
+                    }
+                    else if (msg.equals("/users")) {
+                        System.out.println("command users");
+                    }
+                    else if (msg.length() >= 5 && received.substring(0, 5).equals("/nick")) {
+                        System.out.println("command nickname");
+                    }
+                    else if (msg.equals("/help")) {
+                        System.out.println("command help");
+                    }
+                    else {
+                        response(client, "Unknown command.");
+                    }
+                }
+                else {
+                    server.message(client, msg);
+                }
             }
-
-
-            server.login(client);
         } catch (NotBoundException e) {
             e.printStackTrace();
         } catch (MalformedURLException e) {
