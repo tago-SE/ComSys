@@ -8,21 +8,42 @@ import java.util.*;
 public class ChatServer  extends UnicastRemoteObject implements ChatServerInt {
 
     private List<ChatClientInt> clients;
+    private Hashtable<ChatClientInt, ClientData> hash;
+
+
     private int counter = 0;
     private static final String DEFAULT_NAME = "Unknown";
+
+    private class ClientData {
+        String nick;
+    }
+
+    public synchronized void addClient(ChatClientInt client) {
+        clients.add(client);
+        ClientData data = new ClientData();
+        data.name = DEFAULT_NAME + " " + ++counter;
+        hash.put(client, data);
+    }
+
+    public synchronized void removeClient(ChatClientInt client) {
+        clients.remove(client);
+    }
 
     public ChatServer() throws RemoteException{
         clients = Collections.synchronizedList(new ArrayList<>());
     }
 
+    private synchronized handleClientError(ChatClientInt client, Exception e) {
+        System.err.println(e.getMessage());
+        removeClient(client);
+    }
+
     @Override
     public synchronized void message(ChatClientInt client, String msg) {
-        System.out.println("Message: " + msg);
         try {
             client.response("Response: " + msg);
         } catch (Exception e) {
-            System.out.println(e.getMessage());
-            clients.remove(client);
+            handleClientError(client, e);
         }
     }
 
@@ -30,13 +51,13 @@ public class ChatServer  extends UnicastRemoteObject implements ChatServerInt {
         String lowerCaseNickname = nick.toLowerCase();
         Iterator itr = clients.iterator();
         while (itr.hasNext()) {
-            ChatClientInt c = (ChatClientInt) itr.next();
+            ChatClientInt localClient = (ChatClientInt) itr.next();
             try {
-                if (c.getName().toLowerCase().equals(lowerCaseNickname)) {
+                if (localClient.getName().toLowerCase().equals(lowerCaseNickname)) {
                     return false;
                 }
             } catch (Exception e) {
-                clients.remove(c);
+                handleClientError(client, e);
             }
         }
         return true;
@@ -49,19 +70,36 @@ public class ChatServer  extends UnicastRemoteObject implements ChatServerInt {
                 client.response("Nickname changed to: " + nick);
             }
         } catch (Exception e) {
-            System.out.println(e.getMessage());
-            clients.remove(c);
+            handleClientError(client, e);
         }
     }
 
     @Override
     public synchronized void help(ChatClientInt client) throws RemoteException {
-        client.response ("Commands:\n" + "/quit\n" + "/users\n" +  "/whoami\n" + "/nick <nickname>\n" + "/help");
+        try {
+            client.response ("Commands:\n" + "/quit\n" + "/users\n" + "/nick <nickname>\n" + "/help");
+        } catch (Exception e) {
+            handleClientError(client, e);
+        }
     }
 
     @Override
     public synchronized void users(ChatClientInt client) throws RemoteException {
-        client.response ("Users...\nA...");
+        StringBuilder sb = new StringBuilder("Users:\n");
+        try {
+            Iterator itr = clients.iterator();
+            while (itr.hasNext()) {
+                ChatClientInt localClient = (ChatClientInt) itr.next();
+                try {
+                    sb.append(localClient.getName() + "\n");
+                } catch (Exception e) {
+                    handleClientError(localClient, e);
+                }
+            }
+            client.response(sb.toString());
+        } catch (Exception e) {
+            handleClientError(client, e);
+        }
     }
 
     @Override
