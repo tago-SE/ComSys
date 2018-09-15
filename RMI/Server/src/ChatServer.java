@@ -110,6 +110,8 @@ public class ChatServer  extends UnicastRemoteObject implements ChatServerInt {
             String prevNick = data.nick;
             data.nick = nick;
             broadcast(prevNick + " changed nickname to " + nick + ".");
+        } else {
+            unicast(client, "Nickname is already in use.");
         }
     }
 
