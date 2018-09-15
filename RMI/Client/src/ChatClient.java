@@ -35,6 +35,7 @@ public class ChatClient extends UnicastRemoteObject implements ChatClientInt {
                 if (msg.charAt(0) == '/') {
                     if (msg.equals("/quit")) {
                         server.quit(client);
+                        System.exit(0);
                     }
                     else if (msg.equals("/whoami")) {
                         server.whoami(client);
