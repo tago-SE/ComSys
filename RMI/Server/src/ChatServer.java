@@ -7,62 +7,90 @@ import java.util.*;
 
 public class ChatServer  extends UnicastRemoteObject implements ChatServerInt {
 
+    private int counter = 0;
     private List<ChatClientInt> clients;
     private Hashtable<ChatClientInt, ClientData> hash;
+    private String[] commands = {"/quit", "/users", "/whoami", "/nick <nickname>", "/help" };
 
-
-    private int counter = 0;
     private static final String DEFAULT_NAME = "Unknown";
+    private static String helpInfo = null;
 
     private class ClientData {
         String nick;
+
+        public ClientData(String nick) {
+            this.nick = nick;
+        }
+    }
+
+    public ChatServer() throws RemoteException {
+        clients = Collections.synchronizedList(new ArrayList<>());
+        hash = new Hashtable<>();
+        if (helpInfo == null) {
+            StringBuilder sb = new StringBuilder("Commands:\n");
+            for (String cmd: commands) {
+                sb.append(cmd + "\n");
+            }
+            helpInfo = sb.toString();
+        }
     }
 
     public synchronized void addClient(ChatClientInt client) {
+        String nickname = DEFAULT_NAME + " " + ++counter;
         clients.add(client);
-        ClientData data = new ClientData();
-        data.name = DEFAULT_NAME + " " + ++counter;
-        hash.put(client, data);
+        hash.put(client, new ClientData(nickname));
+        broadcast(nickname + " has connected.");
+
     }
 
     public synchronized void removeClient(ChatClientInt client) {
+        String nickname = (hash.remove(client)).nick;
         clients.remove(client);
+        broadcast(nickname + " has disconnected.");
     }
 
-    public ChatServer() throws RemoteException{
-        clients = Collections.synchronizedList(new ArrayList<>());
-    }
-
-    private synchronized handleClientError(ChatClientInt client, Exception e) {
+    private synchronized void handleClientError(ChatClientInt client, Exception e) {
         System.err.println(e.getMessage());
         removeClient(client);
     }
 
-    @Override
-    public synchronized void message(ChatClientInt client, String msg) {
-        try {
-            client.response("Response: " + msg);
-        } catch (Exception e) {
-            handleClientError(client, e);
-        }
-    }
-
     private synchronized boolean isNickAvailable(String nick) {
-        String lowerCaseNickname = nick.toLowerCase();
-        Iterator itr = clients.iterator();
-        while (itr.hasNext()) {
-            ChatClientInt localClient = (ChatClientInt) itr.next();
-            try {
-                if (localClient.getName().toLowerCase().equals(lowerCaseNickname)) {
-                    return false;
-                }
-            } catch (Exception e) {
-                handleClientError(client, e);
+        String lowerCaseNick = nick.toLowerCase();
+        for (ClientData data: hash.values()) {
+            if (data.nick.toLowerCase().equals(lowerCaseNick)) {
+                return false;
             }
         }
         return true;
     }
 
+    private synchronized void broadcast(String msg) {
+        Iterator itr = clients.iterator();
+        while (itr.hasNext()) {
+            ChatClientInt client = (ChatClientInt) itr.next();
+            try {
+                client.response(msg);
+            } catch (Exception e) {
+                handleClientError(client, e);
+            }
+        }
+    }
+
+    @Override
+    public void message(ChatClientInt client, String msg) {
+        broadcast(hash.get(client).nick + ": " + msg);
+    }
+
+    @Override
+    public synchronized void whoami(ChatClientInt client) {
+        try {
+            client.response(hash.get(client).nick);
+        } catch (Exception e) {
+            handleClientError(client, e);
+        }
+    }
+
+    @Override
     public synchronized void nickname(ChatClientInt client, String nick) throws RemoteException {
         try {
             if (isNickAvailable(nick)) {
@@ -77,7 +105,7 @@ public class ChatServer  extends UnicastRemoteObject implements ChatServerInt {
     @Override
     public synchronized void help(ChatClientInt client) throws RemoteException {
         try {
-            client.response ("Commands:\n" + "/quit\n" + "/users\n" + "/nick <nickname>\n" + "/help");
+            client.response (helpInfo);
         } catch (Exception e) {
             handleClientError(client, e);
         }
@@ -87,14 +115,8 @@ public class ChatServer  extends UnicastRemoteObject implements ChatServerInt {
     public synchronized void users(ChatClientInt client) throws RemoteException {
         StringBuilder sb = new StringBuilder("Users:\n");
         try {
-            Iterator itr = clients.iterator();
-            while (itr.hasNext()) {
-                ChatClientInt localClient = (ChatClientInt) itr.next();
-                try {
-                    sb.append(localClient.getName() + "\n");
-                } catch (Exception e) {
-                    handleClientError(localClient, e);
-                }
+            for (ClientData data: hash.values()) {
+                sb.append(data.nick + "\n");
             }
             client.response(sb.toString());
         } catch (Exception e) {
@@ -109,20 +131,13 @@ public class ChatServer  extends UnicastRemoteObject implements ChatServerInt {
 
     @Override
     public synchronized void connect(ChatClientInt client) throws RemoteException {
-        System.out.println(client + " got connected...");
         client.response("Welcome to the RMI Chat Server!");
-        client.setName(DEFAULT_NAME + " " + ++counter);
-        clients.add(client);
+        addClient(client);
     }
 
     @Override
     public synchronized void disconnect(ChatClientInt client) throws RemoteException {
-        // String name
-        System.out.println(client + " got disconnected...");
-        clients.remove(client);
-        for (ChatClientInt localClient : clients) {
-            localClient.response(client.getName() + " has disconnected");
-        }
+        removeClient(client);
     }
 
     public static void main(String[] args) {
