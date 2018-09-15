@@ -77,10 +77,8 @@ public class ChatServer  extends UnicastRemoteObject implements ChatServerInt {
         System.out.println("broadcast: " + msg);
         ArrayList<ChatClientInt> removedClients = new ArrayList();
         ArrayList<Exception> exceptions = new ArrayList();
-        int i = -1;
         for (ChatClientInt client : clients) {
             try {
-                i++;
                 client.response(msg);
             } catch (Exception e) {
                 removedClients.add(0, client);
