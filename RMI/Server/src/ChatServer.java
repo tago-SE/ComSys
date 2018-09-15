@@ -47,6 +47,9 @@ public class ChatServer  extends UnicastRemoteObject implements ChatServerInt {
         String nickname = (hash.remove(client)).nick;
         clients.remove(client);
         broadcast(nickname + " has disconnected.");
+        try {
+            client.shutdown();
+        } catch (Exception e) { }
     }
 
     private synchronized void handleClientError(ChatClientInt client, Exception e) {
@@ -142,13 +145,11 @@ public class ChatServer  extends UnicastRemoteObject implements ChatServerInt {
 
     public static void main(String[] args) {
         try {
-            //System.setSecurityManager(new RMISecurityManager());
             java.rmi.registry.LocateRegistry.createRegistry(1099);
-
             ChatServerInt server = new ChatServer();
             Naming.rebind("rmi://localhost/myabc", server);
             System.out.println("Chat Server is ready.");
-        }catch (Exception e) {
+        } catch (Exception e) {
             System.err.println("Chat Server failed: " + e.getMessage());
         }
     }
