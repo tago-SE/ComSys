@@ -27,9 +27,9 @@ public class ChatServer  extends UnicastRemoteObject implements ChatServerInt {
         clients = Collections.synchronizedList(new ArrayList<>());
         hash = new Hashtable<>();
         if (helpInfo == null) {
-            StringBuilder sb = new StringBuilder("Commands:\n");
+            StringBuilder sb = new StringBuilder("Commands:");
             for (String cmd: commands) {
-                sb.append(cmd + "\n");
+                sb.append("\n" + cmd);
             }
             helpInfo = sb.toString();
         }
@@ -117,9 +117,9 @@ public class ChatServer  extends UnicastRemoteObject implements ChatServerInt {
 
     @Override
     public synchronized void users(ChatClientInt client) throws RemoteException {
-        StringBuilder sb = new StringBuilder("Users:\n");
+        StringBuilder sb = new StringBuilder("Users:");
         for (ClientData data: hash.values()) {
-            sb.append(data.nick + "\n");
+            sb.append("\n" + data.nick);
         }
         unicast(client, sb.toString());
     }
