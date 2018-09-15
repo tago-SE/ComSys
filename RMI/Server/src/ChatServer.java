@@ -149,7 +149,7 @@ public class ChatServer  extends UnicastRemoteObject implements ChatServerInt {
             Naming.rebind("rmi://localhost/myabc", server);
             System.out.println("Chat Server is ready.");
         }catch (Exception e) {
-            System.out.println("Chat Server failed: " + e.getMessage());
+            System.err.println("Chat Server failed: " + e.getMessage());
         }
     }
 }
