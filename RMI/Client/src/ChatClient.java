@@ -28,7 +28,7 @@ public class ChatClient extends UnicastRemoteObject implements ChatClientInt {
         ChatClient client = null;
         try {
             client = new ChatClient();
-            server = (ChatServerInt) Naming.lookup("rmi://"+"localhost"+"/myabc");
+            server = (ChatServerInt) Naming.lookup("rmi://" + args[0] + "/myabc");
             server.connect(client);
             Scanner scan = new Scanner(System.in);
             run = true;
@@ -69,6 +69,12 @@ public class ChatClient extends UnicastRemoteObject implements ChatClientInt {
             System.err.println("Remote Error: " + re.getMessage());
         } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());
+        } finally {
+            try {
+                server.disconnect(client);
+            } catch (Exception ee) {}
+            System.out.println("Shutting down...");
+            System.exit(1);
         }
     }
 }
