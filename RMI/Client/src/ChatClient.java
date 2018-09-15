@@ -65,8 +65,6 @@ public class ChatClient extends UnicastRemoteObject implements ChatClientInt {
                     server.message(client, msg);
                 }
             }
-        } catch (RemoteException re) {
-            System.err.println("Remote Error: " + re.getMessage());
         } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());
         } finally {
