@@ -18,6 +18,12 @@ public class ChatClient extends UnicastRemoteObject implements ChatClientInt {
         System.out.println(msg);
     }
 
+    @Override
+    public void shutdown() {
+        System.out.println("Shutting down...");
+        System.exit(0);
+    }
+
     public static void main(String[] args) {
         ChatClient client = null;
         try {
@@ -61,14 +67,12 @@ public class ChatClient extends UnicastRemoteObject implements ChatClientInt {
                     server.message(client, msg);
                 }
             }
+        } catch (RemoteException re) {
+            System.err.println(re.getMessage());
         } catch (Exception e) {
             System.err.println(e.getMessage());
-            if (server != null) try {
-                server.disconnect(client);
-            } catch (Exception e2) {
-                System.err.println(e2.getMessage());
-                System.exit(1);
-            }
+        } finally {
+            shutdown();
         }
     }
 }
