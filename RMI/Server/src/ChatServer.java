@@ -64,15 +64,31 @@ public class ChatServer  extends UnicastRemoteObject implements ChatServerInt {
         return true;
     }
 
+    private synchronized void unicast(ChatClientInt client, String msg) {
+        System.out.println("unicast: " + msg);
+        try {
+            client.response(msg);
+        } catch (Exception e) {
+            handleClientError(client, e);
+        }
+    }
+
     private synchronized void broadcast(String msg) {
-        Iterator itr = clients.iterator();
-        while (itr.hasNext()) {
-            ChatClientInt client = (ChatClientInt) itr.next();
+        System.out.println("broadcast: " + msg);
+        ArrayList<ChatClientInt> removedClients = new ArrayList();
+        ArrayList<Exception> exceptions = new ArrayList();
+        int i = -1;
+        for (ChatClientInt client : clients) {
             try {
+                i++;
                 client.response(msg);
             } catch (Exception e) {
-                handleClientError(client, e);
+                removedClients.add(0, client);
+                exceptions.add(0, e);
             }
+        }
+        for (int j = 0; j > removedClients.size(); j++) {
+            handleClientError(removedClients.get(j), exceptions.get(j));
         }
     }
 
@@ -83,56 +99,42 @@ public class ChatServer  extends UnicastRemoteObject implements ChatServerInt {
 
     @Override
     public synchronized void whoami(ChatClientInt client) {
-        try {
-            client.response(hash.get(client).nick);
-        } catch (Exception e) {
-            handleClientError(client, e);
-        }
+        unicast(client, hash.get(client).nick);
     }
 
     @Override
     public synchronized void nickname(ChatClientInt client, String nick) throws RemoteException {
-        try {
-            if (isNickAvailable(nick)) {
-                client.setName(nick);
-                client.response("Nickname changed to: " + nick);
-            }
-        } catch (Exception e) {
-            handleClientError(client, e);
+        if (isNickAvailable(nick)) {
+            ClientData data = hash.get(client);
+            String prevNick = data.nick;
+            data.nick = nick;
+            broadcast(prevNick + " changed nickname to " + nick + ".");
         }
     }
 
     @Override
     public synchronized void help(ChatClientInt client) throws RemoteException {
-        try {
-            client.response (helpInfo);
-        } catch (Exception e) {
-            handleClientError(client, e);
-        }
+        unicast(client, helpInfo);
     }
 
     @Override
     public synchronized void users(ChatClientInt client) throws RemoteException {
         StringBuilder sb = new StringBuilder("Users:\n");
-        try {
-            for (ClientData data: hash.values()) {
-                sb.append(data.nick + "\n");
-            }
-            client.response(sb.toString());
-        } catch (Exception e) {
-            handleClientError(client, e);
+        for (ClientData data: hash.values()) {
+            sb.append(data.nick + "\n");
         }
+        unicast(client, sb.toString());
     }
 
     @Override
-    public void quit(ChatClientInt client)  throws RemoteException {
+    public synchronized void quit(ChatClientInt client)  throws RemoteException {
         disconnect(client);
     }
 
     @Override
     public synchronized void connect(ChatClientInt client) throws RemoteException {
-        client.response("Welcome to the RMI Chat Server!");
         addClient(client);
+        unicast(client, "Welcome to the RMI Chat Server!");
     }
 
     @Override
