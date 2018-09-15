@@ -40,7 +40,6 @@ public class ChatClient extends UnicastRemoteObject implements ChatClientInt {
                 if (msg.charAt(0) == '/') {
                     if (msg.equals("/quit")) {
                         server.quit(client);
-                        break;
                     }
                     else if (msg.equals("/whoami")) {
                         server.whoami(client);
@@ -70,8 +69,6 @@ public class ChatClient extends UnicastRemoteObject implements ChatClientInt {
             System.err.println("Remote Error: " + re.getMessage());
         } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());
-        } finally {
-            shutdown();
         }
     }
 }
