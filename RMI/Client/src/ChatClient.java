@@ -30,9 +30,8 @@ public class ChatClient extends UnicastRemoteObject implements ChatClientInt {
             client = new ChatClient();
             server = (ChatServerInt) Naming.lookup("rmi://"+"localhost"+"/myabc");
             server.connect(client);
-            run = true;
             Scanner scan = new Scanner(System.in);
-
+            run = true;
             while (run) {
                 String msg = scan.nextLine();
                 if (msg.length() == 0) {
