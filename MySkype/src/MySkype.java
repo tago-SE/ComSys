@@ -65,7 +65,7 @@ public class MySkype {
                 System.out.println(SERVER_WAITING_FOR_CLIENT);
                 try {
                     Socket socket = serverSocket.accept();
-                    if (clientSocket == null) {
+                    if (clientSocket == null) { // or state is busy (calling, talking, hanging up)
                         // accept client
                         clientSocket = socket;
                         // State: Waiting for <Invite>
