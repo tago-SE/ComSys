@@ -40,10 +40,10 @@ public class MySkype {
         public RingingState() {
             new Thread(() -> {
                 try {
-                    Thread.sleep(250);
                     if (super.state instanceof RingingState)
                         System.out.println("Ringing...");
                     else return;
+                    Thread.sleep(250);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
