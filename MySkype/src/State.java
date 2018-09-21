@@ -5,7 +5,7 @@
 
 public abstract class State implements PhoneInt {
 
-    protected State state;
+    private State state;
 
     @Override
     public void call (String name, int port) {
@@ -25,6 +25,15 @@ public abstract class State implements PhoneInt {
     @Override
     public void ring() {
         throw new IllegalStateException();
+    }
+
+    public State setState(State state) {
+        this.state = state;
+        return state;
+    }
+
+    public State getState() {
+        return state;
     }
 
 }

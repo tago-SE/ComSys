@@ -18,13 +18,13 @@ public class MySkype {
     public static class ReadyState extends State  {
         @Override
         public void call(String name, int port) {
-            System.out.println("calling..." + name + " on " + port);
-            super.state = new CallingState();
+            System.out.println("calling: " + name + ":" + port);
+            state = setState(new CallingState());
         }
 
         @Override
         public void ring() {
-            super.state = new RingingState();
+            state = setState(new RingingState());
         }
     }
 
@@ -32,7 +32,7 @@ public class MySkype {
         @Override
         public void hangup() {
             System.out.println("Aborting call...");
-            super.state = new ReadyState();
+            state = setState(new ReadyState());
         }
     }
 
@@ -40,7 +40,7 @@ public class MySkype {
         public RingingState() {
             new Thread(() -> {
                 try {
-                    if (super.state instanceof RingingState)
+                    if (getState() instanceof RingingState)
                         System.out.println("Ringing...");
                     else return;
                     Thread.sleep(250);
@@ -53,13 +53,13 @@ public class MySkype {
         @Override
         public void hangup() {
             System.out.println("hanging up...");
-            super.state = new ReadyState();
+            state = setState(new ReadyState());
         }
 
         @Override
         public void answer() {
             System.out.println("Answering...");
-            super.state = new SpeakingState();
+            state = setState(new SpeakingState());
         }
     }
 
@@ -67,7 +67,7 @@ public class MySkype {
         @Override
         public void hangup() {
             System.out.println("Hanging up...");
-            super.state = new ReadyState();
+            state = setState(new ReadyState());
         }
     }
 
@@ -122,28 +122,6 @@ public class MySkype {
             }
         }
     }
-
-    /* contains a thread listening for messages from the server */
-    /*
-    public static class Peer {
-        private Socket socket;
-
-        public void call(String name, int port) {
-            System.out.println("calling..." + name + " on " + port);
-
-            // On Success start a thread for managing the call
-        }
-
-        public void hangup() {  // interface shared by server and client ?
-
-        }
-
-        public void answer() {  // interface shared by server and client ?
-
-        }
-
-    }
-    */
 
     private static void handleCommands(String[] args) {
         if (args == null || args.length <= 0)
