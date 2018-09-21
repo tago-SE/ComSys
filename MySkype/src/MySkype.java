@@ -38,6 +38,7 @@ public class MySkype {
     }
 
     public static class CallingState extends State  {
+
         @Override
         public void hangup() {
             System.out.println("Aborting call...");
@@ -46,18 +47,6 @@ public class MySkype {
     }
 
     public static class RingingState extends State  {
-        public RingingState() {
-            new Thread(() -> {
-                try {
-                    if (getState() instanceof RingingState)
-                        System.out.println("Ringing...");
-                    else return;
-                    Thread.sleep(250);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }).start();
-        }
 
         @Override
         public void hangup() {
@@ -142,12 +131,7 @@ public class MySkype {
             } break;
             case Strings.CMD_CALL: {
                 try {
-                    //peer.call(args[1], Integer.parseInt(args[2]));
-
                     state.call(args[1], Integer.parseInt(args[2]));
-
-
-
                 } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {    // Expected failures
                     System.err.println(Strings.CMD_INVALID_CALL);
                 } catch (Exception e) {
