@@ -10,35 +10,10 @@ import java.sql.SQLOutput;
 
 public class MySkype {
 
-    private static Peer peer        = null;
+    //private static Peer peer        = null;
     private static Server server    = null;
     private static boolean run      = true;
-    //private static State state      = State.Ready;
-
-    /*
-    public enum State {
-        Ready, Waiting, Calliong, Speaking, Hangingup;
-    }
-    */
-
-    /*
-    public abstract class State implements PhoneInt {
-        @Override
-        public void call (String name, int port) {
-            System.err.println(Strings.ILLEGAL_OPERATION);
-        }
-
-        @Override
-        public void answer() {
-            System.err.println(Strings.ILLEGAL_OPERATION);
-        }
-
-        @Override
-        public void hangup() {
-            System.err.println(Strings.ILLEGAL_OPERATION);
-        }
-    }
-    */
+    private static State state;
 
     public static class ReadyState extends State  {
         @Override
@@ -77,20 +52,22 @@ public class MySkype {
 
         @Override
         public void hangup() {
+            System.out.println("hanging up...");
             super.state = new ReadyState();
         }
 
         @Override
         public void answer() {
             System.out.println("Answering...");
-            // Start a thread that spams "ringing... periodically until the state changes".
+            super.state = new SpeakingState();
         }
     }
 
-    public class SpeakingState extends State  {
+    public static class SpeakingState extends State  {
         @Override
         public void hangup() {
             System.out.println("Hanging up...");
+            super.state = new ReadyState();
         }
     }
 
@@ -147,6 +124,7 @@ public class MySkype {
     }
 
     /* contains a thread listening for messages from the server */
+    /*
     public static class Peer {
         private Socket socket;
 
@@ -165,6 +143,7 @@ public class MySkype {
         }
 
     }
+    */
 
     private static void handleCommands(String[] args) {
         if (args == null || args.length <= 0)
@@ -176,7 +155,12 @@ public class MySkype {
             } break;
             case Strings.CMD_CALL: {
                 try {
-                    peer.call(args[1], Integer.parseInt(args[2]));
+                    //peer.call(args[1], Integer.parseInt(args[2]));
+
+                    state.call(args[1], Integer.parseInt(args[2]));
+
+
+
                 } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {    // Expected failures
                     System.err.println(Strings.CMD_INVALID_CALL);
                 } catch (Exception e) {
@@ -220,7 +204,6 @@ public class MySkype {
                     }
                 } catch (IOException e) {
                     System.err.println(Strings.STDIO_ERR);
-                    e.printStackTrace();
                     run = false;
                 }
             }
@@ -236,10 +219,10 @@ public class MySkype {
     public static void main(String[] args) {
         Thread userInput = null;
 
-        State state = new ReadyState();
+        state = new ReadyState();
 
         try {
-            peer = new Peer();
+            //peer = new Peer();
             (server = new Server(Integer.parseInt(args[0]))).start();
             (userInput = standardInputHandler()).start();
 
