@@ -19,7 +19,16 @@ public class MySkype {
         @Override
         public void call(String name, int port) {
             System.out.println("calling: " + name + ":" + port);
-            state = setState(new CallingState());
+            try {
+                System.out.println("Attempting to connect to: " + name + ":" + port);
+                Socket socket = new Socket(name, port);
+                System.out.println("Connection established");
+                // Timeout
+                // Check for busy
+                state = setState(new CallingState());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         @Override
