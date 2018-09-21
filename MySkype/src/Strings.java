@@ -9,6 +9,7 @@ public class Strings {
     public static final String APP_TERM                     = "Application terminated.";
     public static final String CMD_INVALID                  = "Invalid command.";
     public static final String CMD_INVALID_CALL             = "Invalid call entry.";
+    public static final String ILLEGAL_OPERATION            = "Illegal operation.";
 
     public static final String CMD_QUIT                     = "/quit";
     public static final String CMD_CALL                     = "/call";

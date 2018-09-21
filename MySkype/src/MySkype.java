@@ -1,19 +1,103 @@
+import org.jetbrains.annotations.Contract;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.SQLOutput;
 
 public class MySkype {
 
     private static Peer peer        = null;
     private static Server server    = null;
     private static boolean run      = true;
-    private static State state      = State.Ready;
+    //private static State state      = State.Ready;
 
+    /*
+    public enum State {
+        Ready, Waiting, Calliong, Speaking, Hangingup;
+    }
+    */
 
+    /*
+    public abstract class State implements PhoneInt {
+        @Override
+        public void call (String name, int port) {
+            System.err.println(Strings.ILLEGAL_OPERATION);
+        }
 
+        @Override
+        public void answer() {
+            System.err.println(Strings.ILLEGAL_OPERATION);
+        }
+
+        @Override
+        public void hangup() {
+            System.err.println(Strings.ILLEGAL_OPERATION);
+        }
+    }
+    */
+
+    public static class ReadyState extends State  {
+        @Override
+        public void call(String name, int port) {
+            System.out.println("calling..." + name + " on " + port);
+            super.setState(new CallingState());
+        }
+
+        @Override
+        public void ring() {
+            super.setState(new RingingState());
+        }
+    }
+
+    public static class CallingState extends State  {
+        @Override
+        public void hangup() {
+            System.out.println("Aborting call...");
+            super.setState(new ReadyState());
+        }
+    }
+
+    public static class RingingState extends State  {
+        public RingingState() {
+            new Thread(() -> {
+                try {
+                    Thread.sleep(250);
+                    if (super.getState() instanceof RingingState)
+                        System.out.println("Ringing...");
+                    else return;
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+        }
+
+        @Override
+        public void hangup() {
+            super.setState(new ReadyState());
+        }
+
+        @Override
+        public void answer() {
+            System.out.println("Answering...");
+            // Start a thread that spams "ringing... periodically until the state changes".
+        }
+    }
+
+    public class SpeakingState extends State  {
+        @Override
+        public void hangup() {
+            System.out.println("Hanging up...");
+        }
+    }
+
+    public class WaitingState extends State  {
+        // Wait for specific messages from server/client
+        // if you are calling
+    }
 
 
     /* Server class contains a thread for listening to messages sent from another peer (client). */
@@ -151,6 +235,8 @@ public class MySkype {
 
     public static void main(String[] args) {
         Thread userInput = null;
+
+        State state = new ReadyState();
 
         try {
             peer = new Peer();
