@@ -44,12 +44,12 @@ public class MySkype {
         @Override
         public void call(String name, int port) {
             System.out.println("calling..." + name + " on " + port);
-            super.setState(new CallingState());
+            super.state = new CallingState();
         }
 
         @Override
         public void ring() {
-            super.setState(new RingingState());
+            super.state = new RingingState();
         }
     }
 
@@ -57,7 +57,7 @@ public class MySkype {
         @Override
         public void hangup() {
             System.out.println("Aborting call...");
-            super.setState(new ReadyState());
+            super.state = new ReadyState();
         }
     }
 
@@ -66,7 +66,7 @@ public class MySkype {
             new Thread(() -> {
                 try {
                     Thread.sleep(250);
-                    if (super.getState() instanceof RingingState)
+                    if (super.state instanceof RingingState)
                         System.out.println("Ringing...");
                     else return;
                 } catch (InterruptedException e) {
@@ -77,7 +77,7 @@ public class MySkype {
 
         @Override
         public void hangup() {
-            super.setState(new ReadyState());
+            super.state = new ReadyState();
         }
 
         @Override

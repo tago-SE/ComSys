@@ -5,7 +5,7 @@
 
 public abstract class State implements PhoneInt {
 
-    private State state;
+    protected State state;
 
     @Override
     public void call (String name, int port) {
@@ -27,11 +27,4 @@ public abstract class State implements PhoneInt {
         throw new IllegalStateException();
     }
 
-    public void setState(State state) {
-        this.state = state;
-    }
-
-    public State getState() {
-        return state;
-    }
 }
