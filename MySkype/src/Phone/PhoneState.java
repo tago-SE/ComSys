@@ -1,14 +1,11 @@
-/*public enum State {
+package Phone;/*public enum State {
     Ready, Waiting, Calliong, Speaking, Hangingup;
 }
 */
 
 public abstract class PhoneState implements PhoneInt {
 
-    static PhoneState instance;     // Not sure
-
-    private PhoneState state;       // Not sure
-
+    public static PhoneState instance;
 
     public PhoneState() {
         instance = this;
@@ -34,13 +31,8 @@ public abstract class PhoneState implements PhoneInt {
         throw new IllegalStateException();
     }
 
-    public PhoneState setState(PhoneState state) {
-        this.state = state;
-        return state;
+    public static PhoneState setState(PhoneState state) {
+        instance = state;
+        return instance;
     }
-
-    public PhoneState getState() {
-        return state;
-    }
-
 }

@@ -11,8 +11,6 @@ public class Server extends Thread {
     private ServerSocket serverSocket = null;
     private Socket clientSocket = null;
 
-    private PhoneState state;
-
     BufferedReader in ;
     PrintWriter out;
 
@@ -22,10 +20,6 @@ public class Server extends Thread {
         this.port = port;
         serverSocket = new ServerSocket(port);
         serverStartedMessage();
-    }
-
-    public void injectPhoneState(PhoneState state) {
-        this.state = state;
     }
 
     private void serverStartedMessage() throws IOException{

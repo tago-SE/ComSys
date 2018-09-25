@@ -1,3 +1,5 @@
+import Phone.PhoneState;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -8,7 +10,6 @@ public class Main {
     private static Client client    = null;
 
     private static boolean run      = true;
-    private static PhoneState state;
 
     public static class ReadyState extends PhoneState  {
         @Override
@@ -25,7 +26,7 @@ public class Main {
 
         @Override
         public void ring() {
-            state = setState(new RingingState());
+            setState(new RingingState());
         }
     }
 
@@ -34,7 +35,7 @@ public class Main {
         @Override
         public void hangup() {
             System.out.println("Aborting call...");
-            state = setState(new ReadyState());
+            setState(new ReadyState());
         }
     }
 
@@ -43,13 +44,13 @@ public class Main {
         @Override
         public void hangup() {
             System.out.println("hanging up...");
-            state = setState(new ReadyState());
+            setState(new ReadyState());
         }
 
         @Override
         public void answer() {
             System.out.println("Answering...");
-            state = setState(new SpeakingState());
+            setState(new SpeakingState());
         }
     }
 
@@ -57,11 +58,11 @@ public class Main {
         @Override
         public void hangup() {
             System.out.println("Hanging up...");
-            state = setState(new ReadyState());
+            setState(new ReadyState());
         }
     }
 
-    public class WaitingState extends PhoneState  {
+    public class WaitingState extends PhoneState {
         // Wait for specific messages from server/client
         // if you are calling
     }
@@ -76,7 +77,7 @@ public class Main {
             } break;
             case Strings.CMD_CALL: {
                 try {
-                    state.call(args[1], Integer.parseInt(args[2]));
+                    PhoneState.instance.call(args[1], Integer.parseInt(args[2]));
                 } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {    // Expected failures
                     System.err.println(Strings.CMD_INVALID_CALL);
                 } catch (Exception e) {
@@ -135,24 +136,10 @@ public class Main {
     public static void main(String[] args) {
         Thread userInput = null;
 
-        state = new ReadyState();
-
-
-        PhoneState s = new ReadyState();
-        //s = new CallingState();
-
-        if (PhoneState.instance instanceof ReadyState)
-            System.out.println("ReadyState");
-        else if (PhoneState.instance instanceof CallingState )
-            System.out.println("CallingState");
-        else System.out.println("OtherState");
-
+        PhoneState.setState(new ReadyState());
         try {
             server = new Server(Integer.parseInt(args[0]));
-            server.injectPhoneState(state);
             server.start();
-
-
             (userInput = standardInputHandler()).start();
 
         } catch (IndexOutOfBoundsException | NumberFormatException e) {
