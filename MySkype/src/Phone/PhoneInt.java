@@ -5,4 +5,5 @@ public interface PhoneInt {
     void answer();
     void hangup();
     void ring();
+    void acknowledge();
 }

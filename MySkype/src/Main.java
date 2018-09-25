@@ -3,6 +3,7 @@ import Phone.PhoneState;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
 
 public class Main {
 
@@ -12,13 +13,23 @@ public class Main {
     private static boolean run      = true;
 
     public static class ReadyState extends PhoneState  {
+
+        private boolean callingSelf(String name, int port) throws IOException {
+            return (name.equals("localhost") || InetAddress.getLocalHost().getHostAddress().equals(name))
+                    && server.getPort() == port;
+        }
+
         @Override
         public void call(String name, int port) {
-            System.out.println("calling: " + name + ":" + port);
             try {
+                if (callingSelf(name, port)) {
+                    System.err.println("Cannot call self.");
+                    return;
+                }
+                System.out.println("calling: " + name + ":" + port);
                 client = new Client(name, port);
                 client.write(Protocol.INVITE);
-                //state = setState(new CallingState());
+                setState(new CallingState());
             } catch (IOException e) {
                 System.err.println(e.getMessage());
             }
@@ -26,11 +37,17 @@ public class Main {
 
         @Override
         public void ring() {
+            System.out.println("Someone is ringing...");
+            // Server response TRO
             setState(new RingingState());
         }
     }
 
+
+
     public static class CallingState extends PhoneState  {
+
+        // Waiting for TRO to be received on the server
 
         @Override
         public void hangup() {
@@ -39,7 +56,10 @@ public class Main {
         }
     }
 
+
     public static class RingingState extends PhoneState  {
+
+        // Waiting for TRO-ACK to be received on the client
 
         @Override
         public void hangup() {
@@ -50,6 +70,7 @@ public class Main {
         @Override
         public void answer() {
             System.out.println("Answering...");
+            // Acknowledge
             setState(new SpeakingState());
         }
     }
@@ -135,7 +156,6 @@ public class Main {
 
     public static void main(String[] args) {
         Thread userInput = null;
-
         PhoneState.setState(new ReadyState());
         try {
             server = new Server(Integer.parseInt(args[0]));

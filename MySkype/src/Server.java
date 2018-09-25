@@ -1,3 +1,5 @@
+import Phone.PhoneState;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -22,6 +24,10 @@ public class Server extends Thread {
         serverStartedMessage();
     }
 
+    public int getPort() {
+        return port;
+    }
+
     private void serverStartedMessage() throws IOException{
         Socket socket = null;
         try {
@@ -33,10 +39,6 @@ public class Server extends Thread {
             if (socket != null)
                 socket.close();
         }
-    }
-
-    public void close() {
-        run = false;
     }
 
     @Override
@@ -53,26 +55,33 @@ public class Server extends Thread {
                     out = new PrintWriter(clientSocket.getOutputStream(), true);
                     for (;;) {
                         String msg = in.readLine();
-                        switch (msg) {
-                            case Protocol.INVITE: {
-                                System.out.println("Server /invite");
-                            } break;
-                            case Protocol.TRO_ACK: {
+                        try {
+                            switch (msg) {
+                                case Protocol.INVITE: {
+                                    System.out.println("Server /invite");
+                                    PhoneState.instance.ring();
+                                }
+                                break;
+                                case Protocol.TRO_ACK: {
 
-                            } break;
-                            case Protocol.BYE: {
+                                }
+                                break;
+                                case Protocol.BYE: {
 
-                            } break;
-                            case Protocol.BYE_ACK: {
+                                }
+                                break;
+                                case Protocol.BYE_ACK: {
 
-                            } break;
-                            default: {
-                                System.err.println("Invalid request");
+                                }
+                                break;
+                                default: {
+                                    throw new IllegalArgumentException();
+                                }
                             }
+                        } catch (Exception e) {
+                            // Any errors should immediately reset to ReadyState and drop the client
                         }
                     }
-
-                    // State: Waiting for <Invite>
                 }
                 else {
                     // Send busy to socket
@@ -84,5 +93,9 @@ public class Server extends Thread {
                 System.err.println(Strings.SERVER_ACCEPT_ERR);
             }
         }
+    }
+
+    public void close() {
+        run = false;
     }
 }

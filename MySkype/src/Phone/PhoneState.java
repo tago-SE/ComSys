@@ -31,6 +31,11 @@ public abstract class PhoneState implements PhoneInt {
         throw new IllegalStateException();
     }
 
+    @Override
+    public void acknowledge() {
+        throw new IllegalStateException();
+    }
+
     public static PhoneState setState(PhoneState state) {
         instance = state;
         return instance;
