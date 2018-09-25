@@ -3,9 +3,16 @@
 }
 */
 
-public abstract class State implements PhoneInt {
+public abstract class PhoneState implements PhoneInt {
 
-    private State state;
+    static PhoneState instance;     // Not sure
+
+    private PhoneState state;       // Not sure
+
+
+    public PhoneState() {
+        instance = this;
+    }
 
     @Override
     public void call (String name, int port) {
@@ -27,12 +34,12 @@ public abstract class State implements PhoneInt {
         throw new IllegalStateException();
     }
 
-    public State setState(State state) {
+    public PhoneState setState(PhoneState state) {
         this.state = state;
         return state;
     }
 
-    public State getState() {
+    public PhoneState getState() {
         return state;
     }
 

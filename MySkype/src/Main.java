@@ -1,33 +1,25 @@
-import org.jetbrains.annotations.Contract;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.sql.SQLOutput;
 
-public class MySkype {
+public class Main {
 
-    //private static Peer peer        = null;
     private static Server server    = null;
-    private static boolean run      = true;
-    private static State state;
+    private static Client client    = null;
 
-    public static class ReadyState extends State  {
+    private static boolean run      = true;
+    private static PhoneState state;
+
+    public static class ReadyState extends PhoneState  {
         @Override
         public void call(String name, int port) {
             System.out.println("calling: " + name + ":" + port);
             try {
-                System.out.println("Attempting to connect to: " + name + ":" + port);
-                Socket socket = new Socket(name, port);
-                System.out.println("Connection established");
-                // Timeout
-                // Check for busy
-                state = setState(new CallingState());
+                client = new Client(name, port);
+                client.write(Protocol.INVITE);
+                //state = setState(new CallingState());
             } catch (IOException e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
             }
         }
 
@@ -37,7 +29,7 @@ public class MySkype {
         }
     }
 
-    public static class CallingState extends State  {
+    public static class CallingState extends PhoneState  {
 
         @Override
         public void hangup() {
@@ -46,7 +38,7 @@ public class MySkype {
         }
     }
 
-    public static class RingingState extends State  {
+    public static class RingingState extends PhoneState  {
 
         @Override
         public void hangup() {
@@ -61,7 +53,7 @@ public class MySkype {
         }
     }
 
-    public static class SpeakingState extends State  {
+    public static class SpeakingState extends PhoneState  {
         @Override
         public void hangup() {
             System.out.println("Hanging up...");
@@ -69,56 +61,9 @@ public class MySkype {
         }
     }
 
-    public class WaitingState extends State  {
+    public class WaitingState extends PhoneState  {
         // Wait for specific messages from server/client
         // if you are calling
-    }
-
-
-    /* Server class contains a thread for listening to messages sent from another peer (client). */
-    public static class Server extends Thread {
-        private int port;
-        private ServerSocket serverSocket = null;
-        private Socket clientSocket = null;
-
-        private void serverStartedMessage() throws IOException{
-            Socket socket = null;
-            try {
-                (socket = new Socket()).connect(new InetSocketAddress("google.com", 80));
-                System.out.println(Strings.SERVER_STARTED_ON + socket.getLocalAddress() + ":" + this.port);
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                if (socket != null)
-                    socket.close();
-            }
-        }
-
-        public Server(int port) throws IOException {
-            this.port = port;
-            serverSocket = new ServerSocket(port);
-            serverStartedMessage();
-        }
-
-        @Override
-        public void run() {
-            while (run) {
-                System.out.println(Strings.SERVER_WAITING_FOR_CLIENT);
-                try {
-                    Socket socket = serverSocket.accept();
-                    if (clientSocket == null) { // or state is busy (calling, talking, hanging up)
-                        // accept client
-                        clientSocket = socket;
-                        // State: Waiting for <Invite>
-                    }
-                    else {
-                        // Send busy to socket
-                    }
-                } catch (IOException e) {
-                    System.err.println(Strings.SERVER_ACCEPT_ERR);
-                }
-            }
-        }
     }
 
     private static void handleCommands(String[] args) {
@@ -192,9 +137,22 @@ public class MySkype {
 
         state = new ReadyState();
 
+
+        PhoneState s = new ReadyState();
+        //s = new CallingState();
+
+        if (PhoneState.instance instanceof ReadyState)
+            System.out.println("ReadyState");
+        else if (PhoneState.instance instanceof CallingState )
+            System.out.println("CallingState");
+        else System.out.println("OtherState");
+
         try {
-            //peer = new Peer();
-            (server = new Server(Integer.parseInt(args[0]))).start();
+            server = new Server(Integer.parseInt(args[0]));
+            server.injectPhoneState(state);
+            server.start();
+
+
             (userInput = standardInputHandler()).start();
 
         } catch (IndexOutOfBoundsException | NumberFormatException e) {

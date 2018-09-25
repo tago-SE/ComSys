@@ -16,5 +16,4 @@ public class Strings {
     public static final String CMD_HANGUP                   = "/hangup";
     public static final String CMD_ANSWER                   = "/answer";
 
-
 }
