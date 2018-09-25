@@ -20,10 +20,10 @@ public class Main {
         }
 
         @Override
-        public void call(String name, int port) {
+        public synchronized void call(String name, int port) {
             try {
                 if (callingSelf(name, port)) {
-                    System.err.println("Cannot call self.");
+                    System.err.println(Strings.SELF_CALL_ERR);
                     return;
                 }
                 System.out.println("calling: " + name + ":" + port);
@@ -36,7 +36,7 @@ public class Main {
         }
 
         @Override
-        public void ring() {
+        public synchronized void ring() {
             System.out.println("Someone is ringing...");
             // Server response TRO
             setState(new RingingState());
@@ -50,7 +50,7 @@ public class Main {
         // Waiting for TRO to be received on the server
 
         @Override
-        public void hangup() {
+        public synchronized void hangup() {
             System.out.println("Aborting call...");
             setState(new ReadyState());
         }
@@ -62,7 +62,7 @@ public class Main {
         // Waiting for TRO-ACK to be received on the client
 
         @Override
-        public void hangup() {
+        public synchronized void hangup() {
             System.out.println("hanging up...");
             setState(new ReadyState());
         }
@@ -77,15 +77,10 @@ public class Main {
 
     public static class SpeakingState extends PhoneState  {
         @Override
-        public void hangup() {
+        public synchronized void hangup() {
             System.out.println("Hanging up...");
             setState(new ReadyState());
         }
-    }
-
-    public class WaitingState extends PhoneState {
-        // Wait for specific messages from server/client
-        // if you are calling
     }
 
     private static void handleCommands(String[] args) {
