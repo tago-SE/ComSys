@@ -1,4 +1,4 @@
-package Handler;
+package Net;
 
 public class Protocol {
 

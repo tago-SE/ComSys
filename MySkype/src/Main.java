@@ -1,13 +1,13 @@
 
-import Handler.ServerHandler;
+import Net.ServerHandler;
 import Handler.StandardInputHandler;
 import Handler.StateHandler;
-import Phone.StateReady;
+import Net.Client;
+import Net.Server;
+import States.State;
+import States.StateReady;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.InetAddress;
 
 public class Main {
 
@@ -33,8 +33,8 @@ public class Main {
                     return;
                 }
                 System.out.println("calling: " + name + ":" + port);
-                client = new Client(name, port);
-                client.write(Handler.Protocol.INVITE);
+                client = new Net.Client(name, port);
+                client.write(Net.Protocol.INVITE);
                 client.start();
                 setState(new CallingState());
             } catch (IOException e) {
@@ -45,7 +45,7 @@ public class Main {
         @Override
         public synchronized void ring() {
             System.out.println("Someone is ringing...");
-            server.write(Handler.Protocol.TRO);
+            server.write(Net.Protocol.TRO);
             setState(new RingingState());
         }
     }
@@ -56,9 +56,9 @@ public class Main {
 
         @Override
         public synchronized void acknowledge(String arg) {
-            if (arg.equals(Handler.Protocol.TRO)) {
+            if (arg.equals(Net.Protocol.TRO)) {
                 System.out.println("TRO ACK sent");
-                client.write(Handler.Protocol.TRO_ACK);
+                client.write(Net.Protocol.TRO_ACK);
             }
             else {
                 System.out.println("TROACK FAILED");
@@ -77,7 +77,7 @@ public class Main {
 
         @Override
         public synchronized void acknowledge(String arg) {
-            if (arg.equals(Handler.Protocol.TRO_ACK)) {
+            if (arg.equals(Net.Protocol.TRO_ACK)) {
 
             }
         }
@@ -105,84 +105,38 @@ public class Main {
     }
     */
 
-    private static void handleCommands(String[] args) {
-        if (args == null || args.length <= 0)
-            return;
-        switch (args[0]) {
-            case Strings.CMD_QUIT: {
-                System.out.println("Quitting...");
-                run = false;
-            } break;
-            case Strings.CMD_CALL: {
-                try {
-                    //PhoneState.instance.call(args[1], Integer.parseInt(args[2]));
-                } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {    // Expected failures
-                    System.err.println(Strings.CMD_INVALID_CALL);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                // set state to busy
-                // Errors
-                // 1) You are busy (in another call)
-                // 2) The other peer is busy
-                // 3) Failed to establish connection
-                // 4) Attempted to call yourself
-            } break;
-            case Strings.CMD_HANGUP: {
-                System.out.println("Hanging up...");
-                // Errros
-                // 1) You are not busy (in another call)
-            } break;
-            case Strings.CMD_ANSWER: {
-                // set state to busy (need to be mutex)
-                System.out.println("Answering...");
-                // Errors
-                // 1) There is no pending call
-            } break;
-            default: {
-                System.err.println(Strings.CMD_INVALID);
-            }
-        }
-    }
-
-    private static Thread standardInputHandler() {
-        return new Thread(() -> {
-            BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
-            while (run) {
-                try {
-                    if (stdin.ready()) {
-                        String line = stdin.readLine();
-                        if (line.length() == 0)
-                            continue;
-                        if (line.charAt(0) == '/')
-                            handleCommands(line.split(" "));
-                    }
-                } catch (IOException e) {
-                    System.err.println(Strings.STDIO_ERR);
-                    run = false;
-                }
-            }
+    public static void waitForQuitSignal(StateHandler state) {
+        while (!state.shouldQuit()) {
             try {
-                stdin.close();
-            } catch (IOException e) {
+                Thread.sleep(33);
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            System.out.println("Standard I/O closing...");
-        });
+        }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
-        StateHandler stateHandler = new StateHandler(new StateReady());
-
-        StandardInputHandler userInput = new StandardInputHandler(stateHandler);
-        userInput.start();
+        State state = new StateReady();
         try {
-            ServerHandler serverHandler = new ServerHandler(stateHandler, Integer.parseInt(args[0]));
+            state.server = new Server(Integer.parseInt(args[0]));
+            state.server.start();
         } catch (IndexOutOfBoundsException | NumberFormatException e) {
             System.err.println(Strings.SERVER_ARG_ERR + " " + Strings.APP_TERM);
-        } catch (IOException io) {
+        } catch (IOException ioe) {
             System.err.println(Strings.SERVER_START_ERR + " " + Strings.APP_TERM);
         }
+
+        StandardInputHandler userInput = new StandardInputHandler();
+        userInput.start();
+        StateHandler stateHandler = StateHandler.getInstance();
+        stateHandler.setState(state);
+
+        waitForQuitSignal(stateHandler);
+
+        System.out.println("Program terminated.");
+
+        userInput.close();
+
     }
 }

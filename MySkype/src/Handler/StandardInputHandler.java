@@ -1,23 +1,24 @@
 package Handler;
 
 import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-public class StandardInputHandler extends Thread {
+public class StandardInputHandler extends Thread implements Closeable {
 
-    private StateHandler stateHandler;
+    private final StateHandler stateHandler = StateHandler.getInstance();
     private BufferedReader stdin;
     private boolean run;
 
-    public StandardInputHandler(StateHandler stateHandler) {
-        this.stateHandler = stateHandler;
+
+    public StandardInputHandler() {
         stdin  = new BufferedReader(new InputStreamReader(System.in));
         run = true;
     }
 
     @Override
-    public void start() {
+    public void run() {
         while (run) {
             try {
                 if (stdin.ready()) {
@@ -34,5 +35,11 @@ public class StandardInputHandler extends Thread {
             e.printStackTrace();
         }
         System.out.println("Standard I/O closing...");
+    }
+
+    @Override
+    public void close() throws IOException {
+        run = false;
+        interrupt();
     }
 }
