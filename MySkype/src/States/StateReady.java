@@ -3,13 +3,8 @@ package States;
 import Net.Protocol;
 import Net.Client;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.InetAddress;
-import java.net.Socket;
-import java.sql.SQLOutput;
 
 public class StateReady extends State {
 
@@ -39,6 +34,8 @@ public class StateReady extends State {
             System.out.println("sending invite...");
             client = new Client(name, port);
             client.write(Protocol.INVITE);
+
+
             //client.start();
     }
 

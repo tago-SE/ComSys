@@ -45,7 +45,7 @@ public class Server extends Thread implements Closeable {
         // interrupt();
     }
 
-    public void drop() {
+    public synchronized void drop() {
         try {
             if (in != null)
                 in.close();
@@ -62,15 +62,43 @@ public class Server extends Thread implements Closeable {
         }
     }
 
+    public void write(String msg) throws IOException {
+        System.out.println("Server w/ " + msg);
+        if (out != null)
+            out.println(msg);
+        else {
+            throw new IOException();
+        }
+    }
+
+    private synchronized boolean handleIncomingConnections() throws IOException {
+        Socket socket = socket = serverSocket.accept();
+        if (clientSocket != null) {
+            socket.close();
+            return false;
+        }
+        clientSocket = socket;
+        in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        out = new PrintWriter(clientSocket.getOutputStream(), true);
+        return true;
+    }
+
+    public synchronized boolean hasConnection() {
+        return clientSocket != null && clientSocket.isConnected();
+    }
+
     @Override
     public void run() {
         while (run) {
-            System.out.println("Server: Waiting for peers.");
+
             try {
-                clientSocket = serverSocket.accept();
-                in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                out = new PrintWriter(clientSocket.getOutputStream(), true);
-                System.out.println("Server: Peer accepted");
+                System.out.println("Server: Waiting for peers.");
+                if (!handleIncomingConnections()) {
+                    System.out.println("Server: Peer rejected");
+                    continue;
+                } else {
+                    System.out.println("Server: Peer accepted");
+                }
                 if (in.ready()) {
                     String line = in.readLine();
                     try {

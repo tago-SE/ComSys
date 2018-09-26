@@ -1,9 +1,7 @@
 package Handler;
 
 import Net.Protocol;
-import States.State;
-import States.StateCalling;
-import States.StateReady;
+import States.*;
 
 import java.io.IOException;
 
@@ -60,16 +58,16 @@ public class StateHandler {
                     break;
                     case Command.HANGUP: {
                         System.out.println("Hanging up...");
+                        state.sendBye();
                     }
                     break;
                     default: {
                         System.err.println("Invalid Command.");
                     }
                 }
-            } catch (IOException ioe) {
-                System.err.println("IO: " + ioe.getMessage());
-            } catch (IllegalStateException ise) {
-                System.err.println("State: " + ise.getMessage());
+            } catch (IllegalStateException | IOException ioe) {
+                System.err.println("Command failure.");
+                setState(new StateReady());
             }
         }
     }
@@ -78,21 +76,26 @@ public class StateHandler {
         switch(line) {
             case Protocol.INVITE: {
                 state.recievedInvite();
+                setState(new StateRinging());
             } break;
             case Protocol.TRO: {
-
+                state.recievedTRO();
+                setState(new StateSpeaking());
             } break;
             case Protocol.TRO_ACK: {
-
+                state.recievedTROAck();
+                setState(new StateSpeaking());
             } break;
             case Protocol.BYE: {
-
+                state.recievedBye();
+                setState(new StateHangingUp());
             } break;
             case Protocol.OK: {
-
+                state.recievedByeAck();
+                setState(new StateHangingUp());
             } break;
             default: {
-                System.err.println("Invalid ProtocolDataUnit.");
+                System.err.println("ProtocolDataUnit failure.");
                 setState(new StateReady());
             }
         }

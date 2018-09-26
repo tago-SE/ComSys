@@ -41,16 +41,32 @@ public abstract class State {
         throw new IllegalStateException();
     }
 
-    public void sendTRO() {
+    public void sendTRO() throws IOException {
         throw new IllegalStateException();
     }
 
-    public void recievedTROAcknowledge() {
-
+    public void recievedTROAck() {
+        throw new IllegalStateException();
     }
 
-    public void sendTROAcknowledge() {
+    public void sendTROAck() {
+        throw new IllegalStateException();
+    }
 
+    public void recievedBye() {
+        throw new IllegalStateException();
+    }
+
+    public void sendBye() throws IOException {
+        throw new IllegalStateException();
+    }
+
+    public void recievedByeAck() {
+        throw new IllegalStateException();
+    }
+
+    public void sendByeAck() {
+        throw new IllegalStateException();
     }
 
 }
