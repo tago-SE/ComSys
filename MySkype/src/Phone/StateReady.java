@@ -1,21 +1,10 @@
 package Phone;
 
-import java.net.Socket;
-
-public class StateReady extends PhoneState {
+public class StateReady extends State {
 
     @Override
     public boolean isBusy() {
         return false;
     }
 
-    public void sendInvite() {
-
-    }
-
-    
-
-    public void inviteReceived() {
-
-    }
 }

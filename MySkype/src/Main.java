@@ -1,4 +1,8 @@
-import Phone.PhoneState;
+
+import Handler.ServerHandler;
+import Handler.StandardInputHandler;
+import Handler.StateHandler;
+import Phone.StateReady;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -12,6 +16,8 @@ public class Main {
 
     private static boolean run      = true;
 
+
+    /*
     public static class ReadyState extends PhoneState  {
 
         private boolean callingSelf(String name, int port) throws IOException {
@@ -28,7 +34,8 @@ public class Main {
                 }
                 System.out.println("calling: " + name + ":" + port);
                 client = new Client(name, port);
-                client.write(Protocol.INVITE);
+                client.write(Handler.Protocol.INVITE);
+                client.start();
                 setState(new CallingState());
             } catch (IOException e) {
                 System.err.println(e.getMessage());
@@ -38,7 +45,7 @@ public class Main {
         @Override
         public synchronized void ring() {
             System.out.println("Someone is ringing...");
-            // Server response TRO
+            server.write(Handler.Protocol.TRO);
             setState(new RingingState());
         }
     }
@@ -47,7 +54,16 @@ public class Main {
 
     public static class CallingState extends PhoneState  {
 
-        // Waiting for TRO to be received on the server
+        @Override
+        public synchronized void acknowledge(String arg) {
+            if (arg.equals(Handler.Protocol.TRO)) {
+                System.out.println("TRO ACK sent");
+                client.write(Handler.Protocol.TRO_ACK);
+            }
+            else {
+                System.out.println("TROACK FAILED");
+            }
+        }
 
         @Override
         public synchronized void hangup() {
@@ -59,7 +75,12 @@ public class Main {
 
     public static class RingingState extends PhoneState  {
 
-        // Waiting for TRO-ACK to be received on the client
+        @Override
+        public synchronized void acknowledge(String arg) {
+            if (arg.equals(Handler.Protocol.TRO_ACK)) {
+
+            }
+        }
 
         @Override
         public synchronized void hangup() {
@@ -82,6 +103,7 @@ public class Main {
             setState(new ReadyState());
         }
     }
+    */
 
     private static void handleCommands(String[] args) {
         if (args == null || args.length <= 0)
@@ -93,7 +115,7 @@ public class Main {
             } break;
             case Strings.CMD_CALL: {
                 try {
-                    PhoneState.instance.call(args[1], Integer.parseInt(args[2]));
+                    //PhoneState.instance.call(args[1], Integer.parseInt(args[2]));
                 } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {    // Expected failures
                     System.err.println(Strings.CMD_INVALID_CALL);
                 } catch (Exception e) {
@@ -150,13 +172,13 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        Thread userInput = null;
-        PhoneState.setState(new ReadyState());
-        try {
-            server = new Server(Integer.parseInt(args[0]));
-            server.start();
-            (userInput = standardInputHandler()).start();
 
+        StateHandler stateHandler = new StateHandler(new StateReady());
+
+        StandardInputHandler userInput = new StandardInputHandler(stateHandler);
+        userInput.start();
+        try {
+            ServerHandler serverHandler = new ServerHandler(stateHandler, Integer.parseInt(args[0]));
         } catch (IndexOutOfBoundsException | NumberFormatException e) {
             System.err.println(Strings.SERVER_ARG_ERR + " " + Strings.APP_TERM);
         } catch (IOException io) {

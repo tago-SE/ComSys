@@ -1,7 +1,6 @@
 package Phone;
 
-public class BusyState extends PhoneState {
-
+public class StateBusy extends State {
     @Override
     public boolean isBusy() {
         return true;

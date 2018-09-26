@@ -1,4 +1,4 @@
-import Phone.PhoneState;
+import Handler.Protocol;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -41,6 +41,11 @@ public class Server extends Thread {
         }
     }
 
+    public void write(String msg)  {
+        out.println(msg);
+        System.out.println("Server w/ " + msg);
+    }
+
     @Override
     public void run() {
         while (run) {
@@ -59,7 +64,7 @@ public class Server extends Thread {
                             switch (msg) {
                                 case Protocol.INVITE: {
                                     System.out.println("Server /invite");
-                                    PhoneState.instance.ring();
+                                    //PhoneState.instance.ring();
                                 }
                                 break;
                                 case Protocol.TRO_ACK: {
@@ -70,10 +75,10 @@ public class Server extends Thread {
 
                                 }
                                 break;
-                                case Protocol.BYE_ACK: {
+                                //case Handler.Protocol.BYE_ACK: {
 
-                                }
-                                break;
+                               // }
+                               // break;
                                 default: {
                                     throw new IllegalArgumentException();
                                 }
