@@ -7,4 +7,8 @@ public class Protocol {
     public static final String BYE_ACK    = "5";
     public static final String BUSY       = "6";
     public static final String ERROR      = "7";
+
+    // parse between
+
+    // Invite <udp-port>
 }

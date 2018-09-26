@@ -11,6 +11,8 @@ public abstract class PhoneState implements PhoneInt {
         instance = this;
     }
 
+    public abstract boolean isBusy();
+
     @Override
     public void call (String name, int port) {
         throw new IllegalStateException();
@@ -40,4 +42,23 @@ public abstract class PhoneState implements PhoneInt {
         instance = state;
         return instance;
     }
+
+
+    public void recievedInvite() {
+        throw new IllegalStateException();
+    }
+
+    public void sendInvite() {
+        throw new IllegalStateException();
+    }
+
+    public void recievedTRO() {
+        throw new IllegalStateException();
+    }
+
+    public void sendTRO() {
+        throw new IllegalStateException();
+    }
+
+
 }
