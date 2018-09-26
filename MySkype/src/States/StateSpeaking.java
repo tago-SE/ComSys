@@ -10,8 +10,7 @@ public class StateSpeaking extends StateBusy {
     public void sendBye() throws IOException {
         if (server.hasConnection())
             server.write(Protocol.BYE);
-        else
-            client.write(Protocol.BYE);
+        else client.write(Protocol.BYE);
     }
 
     @Override

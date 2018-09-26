@@ -11,9 +11,6 @@ public abstract class State {
     public Server server;
     public Client client;
 
-    public ServerSocket serverSocket;
-    public int serverPort;
-
     public boolean isBusy() {
         throw new IllegalStateException();
     }
