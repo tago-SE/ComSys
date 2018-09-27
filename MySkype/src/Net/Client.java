@@ -5,7 +5,7 @@ import Handler.StateHandler;
 import java.io.*;
 import java.net.Socket;
 
-public class Client  extends Thread implements Closeable {
+public class Client implements Closeable {
 
     public final int port;
     public final Socket socket;
@@ -13,6 +13,7 @@ public class Client  extends Thread implements Closeable {
     public final BufferedReader in;
     public boolean run;
     private final  StateHandler stateHandler = StateHandler.getInstance();
+    private Thread thread;
 
     public Client(String name, int port) throws IOException {
         System.out.println("Client connecting/ " + name + ":" + port);
@@ -22,35 +23,33 @@ public class Client  extends Thread implements Closeable {
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         System.out.println("Connection established");
         run = true;
+        (thread = new Thread(()-> {
+            while (run) {
+                try {
+                    String line = in.readLine();
+                    System.out.println("Client r/ " + line);
+                    stateHandler.parseProtocolDataUnit(line);
+                } catch (IOException | NullPointerException e) {
+                    close();
+                    stateHandler.error();
+                }
+            }
+        })).start();
     }
 
     public void write(String msg) throws IOException {
         System.out.println("Client w/ " + msg);
-        if (out != null)
+        try {
             out.println(msg);
-        else throw new IOException();
-    }
-
-    @Override
-    public void run() {
-        while (run) {
-            try {
-                if (in.ready()) {
-                    String line = in.readLine();
-                    System.out.println("Client r/ " + line);
-                    stateHandler.parseProtocolDataUnit(line);
-                }
-            } catch (IOException | NullPointerException e) {
-                run = false;
-                System.out.println("Client read error");
-                e.printStackTrace();
-            }
+        } catch (Exception e) {
+            close();
+            throw new IOException();    // Not sure if used/needed
         }
     }
 
     @Override
     public void close() {
-        interrupt();
+        thread.interrupt();
         run = false;
         try {
             socket.close();
@@ -59,5 +58,6 @@ public class Client  extends Thread implements Closeable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println("Client closed.");
     }
 }

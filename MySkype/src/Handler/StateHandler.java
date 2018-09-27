@@ -12,10 +12,10 @@ public class StateHandler {
         return ourInstance;
     }
 
-    private State state = new StateReady();
+    private State state = new StateReady(null);
     private boolean quitSignal = false;
 
-    public State getState() {
+    public synchronized State getState() {
         return state;
     }
 
@@ -23,12 +23,23 @@ public class StateHandler {
         return quitSignal;
     }
 
+
     private StateHandler() {
     }
 
-    public void setState(State state) {
+    public synchronized void setState(State state) {
+        state.client =  this.state.client;
+        state.server = this.state.server;
         System.out.println("State changed: " + state.getClass().getSimpleName());
         this.state = state;
+    }
+
+    public synchronized void error() {
+        setState(new StateReady(state));
+    }
+
+    public synchronized void shutdown() {
+        quitSignal = true;
     }
 
     public synchronized void parseCommand(String line) {
@@ -53,12 +64,13 @@ public class StateHandler {
                     }
                     break;
                     case Command.ANSWER: {
-                        System.out.println("Answering...");
+                        state.sendTRO();
                     }
                     break;
                     case Command.HANGUP: {
                         System.out.println("Hanging up...");
                         state.sendBye();
+                        setState(new StateHangingUp());
                     }
                     break;
                     default: {
@@ -67,37 +79,42 @@ public class StateHandler {
                 }
             } catch (IllegalStateException | IOException ioe) {
                 System.err.println("Command failure.");
-                setState(new StateReady());
+                setState(new StateReady(state));
             }
         }
     }
 
     public synchronized void parseProtocolDataUnit(String line) {
-        switch(line) {
-            case Protocol.INVITE: {
-                state.recievedInvite();
-                setState(new StateRinging());
-            } break;
-            case Protocol.TRO: {
-                state.recievedTRO();
-                setState(new StateSpeaking());
-            } break;
-            case Protocol.TRO_ACK: {
-                state.recievedTROAck();
-                setState(new StateSpeaking());
-            } break;
-            case Protocol.BYE: {
-                state.recievedBye();
-                setState(new StateHangingUp());
-            } break;
-            case Protocol.OK: {
-                state.recievedByeAck();
-                setState(new StateHangingUp());
-            } break;
-            default: {
-                System.err.println("ProtocolDataUnit failure.");
-                setState(new StateReady());
+        try {
+            switch (line) {
+                case Protocol.INVITE: {
+                    state.recievedInvite();
+                    setState(new StateRinging());
+                } break;
+                case Protocol.TRO: {
+                    state.recievedTRO();
+                    setState(new StateSpeaking());
+                } break;
+                case Protocol.TRO_ACK: {
+                    state.recievedTROAck();
+                    setState(new StateSpeaking());
+                }break;
+                case Protocol.BYE: {
+                    state.recievedBye();
+                    setState(new StateReady(state));
+                } break;
+                case Protocol.OK: {
+                    state.recievedByeAck();
+                    setState(new StateReady(state));
+                } break;
+                default: {
+                    System.err.println("ProtocolDataUnit failure.");
+                    setState(new StateReady(state));
+                }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            setState(new StateReady(state));
         }
     }
 }

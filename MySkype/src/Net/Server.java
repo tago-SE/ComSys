@@ -42,10 +42,10 @@ public class Server extends Thread implements Closeable {
     @Override
     public void close() throws IOException {
         run = false;
-        // interrupt();
     }
 
-    public synchronized void drop() {
+    // Do not synchronize this method will cause deadlock when a remote host is closed.
+    public void drop() {
         try {
             if (in != null)
                 in.close();
@@ -60,6 +60,7 @@ public class Server extends Thread implements Closeable {
             out = null;
             in = null;
         }
+        System.out.println("Server dropped client.");
     }
 
     public void write(String msg) throws IOException {
@@ -71,10 +72,10 @@ public class Server extends Thread implements Closeable {
         }
     }
 
-    private synchronized boolean handleIncomingConnections() throws IOException {
+    private boolean handleIncomingConnections() throws IOException {
         Socket socket = socket = serverSocket.accept();
         if (clientSocket != null) {
-            socket.close();
+            // Send busy packet
             return false;
         }
         clientSocket = socket;
@@ -83,35 +84,39 @@ public class Server extends Thread implements Closeable {
         return true;
     }
 
-    public synchronized boolean hasConnection() {
-        return clientSocket != null && clientSocket.isConnected();
+    // Using synchronized here causes deadlock
+
+    public boolean hasConnection() {
+        return clientSocket != null;
     }
 
     @Override
     public void run() {
         while (run) {
-
             try {
-                System.out.println("Server: Waiting for peers.");
                 if (!handleIncomingConnections()) {
                     System.out.println("Server: Peer rejected");
                     continue;
                 } else {
                     System.out.println("Server: Peer accepted");
                 }
-                if (in.ready()) {
-                    String line = in.readLine();
-                    try {
-                        stateHandler.parseProtocolDataUnit(line);
-                    } catch (IllegalStateException e) {
-                        System.out.println("Server: Illegal State Exception: " + StateHandler.getInstance());
-                    }
-                }
             } catch (IOException e) {
+                System.err.println("Server: " + e.getMessage());
                 run = false;
             }
+            while (run) {
+                try {
+                    String line = in.readLine();
+                    System.out.println("Server r/ " + line);
+                    if (line != null)
+                        stateHandler.parseProtocolDataUnit(line);
+                } catch (IOException | NullPointerException e) {
+                    System.err.println("Server: " + e.getMessage());
+                    stateHandler.error();
+                    break;
+                }
+            }
         }
-        drop();
-        System.out.println("Server: Stopped.");
+        System.out.println("Server stopped.");
     }
 }

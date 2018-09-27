@@ -1,23 +1,28 @@
 package States;
 
-import Net.Protocol;
-import Net.Client;
+import Net.*;
 
 import java.io.IOException;
 import java.net.InetAddress;
 
 public class StateReady extends State {
 
-    public StateReady() {
-        if (server != null) {
-            server.drop();  // Drop any previously connected peer
-        }
+    public StateReady(State prev) {
+        if (prev == null)
+            return;
+        this.server = prev.server;
+        this.client = prev.client;
+        if (this.server != null)
+            this.server.drop();
+        if (this.client != null)
+            this.client.close();
     }
 
     @Override
     public boolean isBusy() {
         return false;
     }
+
 
 
     private boolean callingSelf(String name, int port) throws IOException {
@@ -27,20 +32,16 @@ public class StateReady extends State {
 
     @Override
     public void sendInvite(String name, int port) throws IOException, IllegalArgumentException {
-            if (callingSelf(name, port)) {
-                System.err.println("Cannot call self.");
-                return;
-            }
-            System.out.println("sending invite...");
-            client = new Client(name, port);
-            client.write(Protocol.INVITE);
-
-
-            //client.start();
+        if (callingSelf(name, port)) {
+            System.err.println("Cannot call self.");
+            return;
+        }
+        client = new Client(name, port);
+        client.write(Protocol.INVITE);
     }
 
-    public void recievedInvite() {
-        System.out.println("recv invite...");
+    public void recievedInvite() throws IOException {
+        System.out.println("Invite recieved");
     }
 
 }

@@ -8,24 +8,21 @@ public class StateSpeaking extends StateBusy {
 
     @Override
     public void sendBye() throws IOException {
-        if (server.hasConnection())
+        if (server.hasConnection()) {
             server.write(Protocol.BYE);
-        else client.write(Protocol.BYE);
+        }
+        else {
+            client.write(Protocol.BYE);
+        }
     }
 
     @Override
-    public void recievedBye() {
-
+    public void recievedBye() throws IOException {
+        if (server.hasConnection()) {
+            server.write(Protocol.OK);
+        }
+        else {
+            client.write(Protocol.OK);
+        }
     }
-
-    @Override
-    public void recievedByeAck() {
-
-    }
-
-    @Override
-    public void sendByeAck() {
-        throw new IllegalStateException();
-    }
-
 }

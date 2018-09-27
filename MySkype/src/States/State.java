@@ -11,22 +11,23 @@ public abstract class State {
     public Server server;
     public Client client;
 
+    public void connect(Socket socket) {
+        throw new IllegalStateException();
+    }
+
     public boolean isBusy() {
         throw new IllegalStateException();
     }
 
-    /*
-    public void connect(Socket socket) throws IOException {
+    public void hangup() {
         throw new IllegalStateException();
     }
-    */
-
 
     public void error() {
         throw new IllegalStateException();
     }
 
-    public void recievedInvite() {
+    public void recievedInvite() throws IOException {
         throw new IllegalStateException();
     }
 
@@ -34,7 +35,7 @@ public abstract class State {
         throw new IllegalStateException();
     }
 
-    public void recievedTRO() {
+    public void recievedTRO() throws IOException {
         throw new IllegalStateException();
     }
 
@@ -46,11 +47,11 @@ public abstract class State {
         throw new IllegalStateException();
     }
 
-    public void sendTROAck() {
+    public void sendTROAck() throws IOException {
         throw new IllegalStateException();
     }
 
-    public void recievedBye() {
+    public void recievedBye() throws IOException {
         throw new IllegalStateException();
     }
 
