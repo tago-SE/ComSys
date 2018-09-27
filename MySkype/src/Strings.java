@@ -1,3 +1,4 @@
+@Deprecated
 public class Strings {
 
     public static final String SERVER_ARG_ERR               = "Net.Server: Invalid argument.";
