@@ -1,0 +1,4 @@
+Known issues:
+
+1: /quit command does not close server and client threads
+
