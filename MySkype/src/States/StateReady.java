@@ -23,7 +23,9 @@ public class StateReady extends State {
         return false;
     }
 
+    public void connect() {
 
+    }
 
     private boolean callingSelf(String name, int port) throws IOException {
         return (name.equals("localhost") || InetAddress.getLocalHost().getHostAddress().equals(name))
@@ -33,8 +35,7 @@ public class StateReady extends State {
     @Override
     public void sendInvite(String name, int port) throws IOException, IllegalArgumentException {
         if (callingSelf(name, port)) {
-            System.err.println("Cannot call self.");
-            return;
+            throw new IllegalStateException("Cannot call self");
         }
         client = new Client(name, port);
         client.write(Protocol.INVITE);

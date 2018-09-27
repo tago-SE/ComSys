@@ -58,8 +58,12 @@ public class StateHandler {
                         try {
                             state.sendInvite(args[1], Integer.parseInt(args[2]));
                             setState(new StateCalling());
-                        } catch (IllegalArgumentException | ArrayIndexOutOfBoundsException  e) {
-                            System.err.println("Invalid call entry.");
+                        } catch (IllegalArgumentException | ArrayIndexOutOfBoundsException | IllegalStateException e) {
+                            if (e instanceof IllegalStateException) {
+                                System.err.println(e.getLocalizedMessage());
+                            } else {
+                                System.err.println("Invalid call entry.");
+                            }
                         }
                     }
                     break;
