@@ -13,12 +13,12 @@ public class StateHandler {
     public Client client;
 
     private static StateHandler ourInstance = new StateHandler();
+    private State state;
 
     public static StateHandler getInstance() {
         return ourInstance;
     }
 
-    private State state = new StateReady(null);
     private boolean quitSignal = false;
 
     public synchronized State getState() {

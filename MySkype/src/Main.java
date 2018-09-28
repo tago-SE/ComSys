@@ -22,12 +22,12 @@ public class Main {
     public static void main(String[] args) throws IOException {
 
         StateHandler stateHandler = StateHandler.getInstance();
+
         stateHandler.setState(new StateReady(null));
-        State state = stateHandler.getState();
 
         try {
-            state.server = new Server(Integer.parseInt(args[0]));
-            state.server.start();
+            stateHandler.server = new Server(Integer.parseInt(args[0]));
+            stateHandler.server.start();
         } catch (IndexOutOfBoundsException | NumberFormatException e) {
             System.err.println(Strings.SERVER_ARG_ERR + " " + Strings.APP_TERM);
         } catch (IOException ioe) {
