@@ -6,6 +6,10 @@ import java.io.IOException;
 
 public class StateSpeaking extends StateBusy {
 
+    public StateSpeaking() throws IOException {
+        if (client != null) client.setTimeout(0);
+    }
+
     @Override
     public void sendBye() throws IOException {
         if (server.hasConnection()) {

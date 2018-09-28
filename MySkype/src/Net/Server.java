@@ -108,9 +108,8 @@ public class Server extends Thread implements Closeable {
                while (run) {
                    try {
                        String line = in.readLine();
-                       System.out.println("msg: " + line);
-                       if (line != null)
-                           stateHandler.parseProtocolDataUnit(line);
+                       System.out.println("Server r/" + line);
+                       stateHandler.parseProtocolDataUnit(line);
                    } catch (IOException e) {
                        e.printStackTrace();
                        stateHandler.error();
