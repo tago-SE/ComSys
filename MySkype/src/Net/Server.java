@@ -72,21 +72,19 @@ public class Server extends Thread implements Closeable {
         }
     }
 
-    private boolean handleIncomingConnections() throws IOException {
-        Socket socket = socket = serverSocket.accept();
+    private synchronized boolean handleIncomingConnections(Socket socket ) throws IOException {
         if (clientSocket != null) {
-            // Send busy packet
             return false;
         }
         clientSocket = socket;
         in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         out = new PrintWriter(clientSocket.getOutputStream(), true);
+        //lås upp mutex
         return true;
     }
 
-    // Using synchronized here causes deadlock
-
-    public boolean hasConnection() {
+    // Using synchronized here causes deadlock ???
+    public synchronized boolean hasConnection() {
         return clientSocket != null;
     }
 
@@ -94,8 +92,10 @@ public class Server extends Thread implements Closeable {
     public void run() {
         while (run) {
             try {
-                if (!handleIncomingConnections()) {
+                Socket socket = socket = serverSocket.accept();
+                if (!handleIncomingConnections(socket)) {
                     System.out.println("Server: Peer rejected");
+                    socket.close();
                     continue;
                 } else {
                     System.out.println("Server: Peer accepted");
