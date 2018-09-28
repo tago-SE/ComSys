@@ -92,7 +92,7 @@ public class Server extends Thread implements Closeable {
     public void run() {
         while (run) {
             try {
-                Socket socket = socket = serverSocket.accept();
+                Socket socket = serverSocket.accept();
                 if (!handleIncomingConnections(socket)) {
                     System.out.println("Server: Peer rejected");
                     socket.close();
@@ -104,6 +104,20 @@ public class Server extends Thread implements Closeable {
                 System.err.println("Server: " + e.getMessage());
                 run = false;
             }
+            new Thread(()->{
+               while (run) {
+                   try {
+                       String line = in.readLine();
+                       System.out.println("msg: " + line);
+                       if (line != null)
+                           stateHandler.parseProtocolDataUnit(line);
+                   } catch (IOException e) {
+                       e.printStackTrace();
+                       stateHandler.error();
+                   }
+               }
+            }).start();
+            /*
             while (run) {
                 try {
                     String line = in.readLine();
@@ -116,6 +130,7 @@ public class Server extends Thread implements Closeable {
                     break;
                 }
             }
+            */
         }
         System.out.println("Server stopped.");
     }

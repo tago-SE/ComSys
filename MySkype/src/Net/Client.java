@@ -4,6 +4,7 @@ import Handler.StateHandler;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketException;
 
 public class Client implements Closeable {
 
@@ -18,7 +19,12 @@ public class Client implements Closeable {
     public Client(String name, int port) throws IOException {
         System.out.println("Client connecting/ " + name + ":" + port);
         this.port = port;
+
+
         socket = new Socket(name, port);
+
+
+
         out = new PrintWriter(socket.getOutputStream(), true);
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         System.out.println("Connection established");
@@ -45,6 +51,10 @@ public class Client implements Closeable {
             close();
             throw new IOException();    // Not sure if used/needed
         }
+    }
+
+    public synchronized void setTimeout(int time) throws SocketException {
+        socket.setSoTimeout(time);
     }
 
     @Override

@@ -38,6 +38,7 @@ public class StateReady extends State {
             throw new IllegalStateException("Cannot call self");
         }
         client = new Client(name, port);
+        client.setTimeout(5000);
         client.write(Protocol.INVITE);
     }
 
