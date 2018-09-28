@@ -1,5 +1,6 @@
 package States;
 
+import Handler.StateHandler;
 import Net.*;
 
 import java.io.IOException;
@@ -7,11 +8,13 @@ import java.net.InetAddress;
 
 public class StateReady extends State {
 
+    private StateHandler handler = StateHandler.getInstance();
+    private Server server = handler.server;
+    private Client client = handler.client;
+
     public StateReady(State prev) {
         if (prev == null)
             return;
-        this.server = prev.server;
-        this.client = prev.client;
         if (this.server != null)
             this.server.drop();
         if (this.client != null)
@@ -38,7 +41,7 @@ public class StateReady extends State {
             throw new IllegalStateException("Cannot call self");
         }
         client = new Client(name, port);
-        client.setTimeout(5000);
+        client.setTimeout(10000);
         client.write(Protocol.INVITE);
     }
 

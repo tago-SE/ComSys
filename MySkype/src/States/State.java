@@ -3,13 +3,9 @@ package States;
 import Net.*;
 
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.net.Socket;
 
 public abstract class State {
-
-    public Server server;
-    public Client client;
 
     public void connect(Socket socket) {
         throw new IllegalStateException();

@@ -1,11 +1,17 @@
 package Handler;
 
+import Net.Client;
 import Net.Protocol;
+import Net.Server;
 import States.*;
 
 import java.io.IOException;
 
 public class StateHandler {
+
+    public Server server;
+    public Client client;
+
     private static StateHandler ourInstance = new StateHandler();
 
     public static StateHandler getInstance() {
@@ -28,8 +34,6 @@ public class StateHandler {
     }
 
     public synchronized void setState(State state) {
-        state.client =  this.state.client;
-        state.server = this.state.server;
         System.out.println("State changed: " + state.getClass().getSimpleName());
         this.state = state;
     }
