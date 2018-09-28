@@ -24,7 +24,8 @@ public class AudoMain {
             System.out.println("Connection established...");
 
             audio.startStreaming();
-            Thread.sleep(10000);
+
+            Thread.sleep(60*1000);
             audio.stopStreaming();
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
