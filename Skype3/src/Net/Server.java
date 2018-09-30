@@ -14,13 +14,10 @@ public class Server extends Thread implements Closeable {
     private ServerSocket serverSocket;
     private int port;
 
-    //private Client client = null;
     private boolean run;
     private Socket clientSocket = null;
     private BufferedReader in ;
     private PrintWriter out;
-
-
 
     public Server(StateHandler handler, int port) {
         stateHandler = handler;
@@ -78,7 +75,7 @@ public class Server extends Thread implements Closeable {
         clientSocket.setSoTimeout(time);
     }
 
-    public void write(String msg) throws IOException {
+    public synchronized void write(String msg) throws IOException {
         System.out.println("Server w/ " + msg);
         if (out != null)
             out.println(msg);

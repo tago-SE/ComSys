@@ -1,8 +1,9 @@
 package Handler;
 
 import Net.Client;
+import Net.Protocol;
 import Net.Server;
-import State.State;
+import State.*;
 
 import java.io.IOException;
 
@@ -57,11 +58,13 @@ public class StateHandler {
 
     }
 
+    // Debug
     private void toggleDebug() {
         debugEnabled = !debugEnabled;
         System.out.println("Debug = " + debugEnabled);
     }
 
+    // Debug
     private synchronized void connect(String[] args) {
         client = new Client(this);
         try {
@@ -84,15 +87,17 @@ public class StateHandler {
         }
     }
 
+    // Debug
     private synchronized void disconnect() {
-        if (client == null) {
-            System.err.println("No connected client.");
-            return;
+        if (client != null) {
+            client.close();
+            client = null;
         }
-        client.close();
-        client = null;
+        if (server != null)
+            server.dropClient();
     }
 
+    // Debug
     private synchronized void clientSend(String[] args) {
         if (args.length < 1)
             return;
@@ -143,6 +148,8 @@ public class StateHandler {
                                 case Debug.CLIENT_SEND:
                                     clientSend(args);
                                     break;
+                                case Debug.SERVER_SEND:
+                                    break;
                                 default:
                                     System.err.println("Invalid Command.");
                             }
@@ -153,7 +160,43 @@ public class StateHandler {
             }
         } catch (Exception e) {
             e.printStackTrace();
-
+            setState(new StateReady());
         }
     }
+
+    public synchronized void parseProtocolDataUnit(String line) {
+        try {
+            switch (line) {
+                case Protocol.INVITE: {
+                    state.recievedInvite();
+                    //setState(new StateRinging());
+                } break;
+                case Protocol.TRO: {
+                    state.recievedTRO();
+                    //setState(new StateSpeaking());
+                } break;
+                case Protocol.TRO_ACK: {
+                    state.recievedTROAck();
+                    //setState(new StateSpeaking());
+                }break;
+                case Protocol.BYE: {
+                    state.recievedBye();
+                    //setState(new StateReady(state));
+                } break;
+                case Protocol.OK: {
+                    state.recievedByeAck();
+                    //setState(new StateReady(state));
+                } break;
+                default: {
+                    System.err.println("ProtocolDataUnit failure.");
+                    //setState(new StateReady(state));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            setState(new StateReady());
+        }
+    }
+
+
 }

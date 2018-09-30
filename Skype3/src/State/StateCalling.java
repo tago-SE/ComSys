@@ -19,7 +19,6 @@ public class StateCalling extends State {
             client.write(Protocol.TRO_ACK);
         } catch (IOException e) {
             System.err.println(e.getMessage());
-
             return new StateReady();
         }
         return new StateSpeaking();
