@@ -10,18 +10,6 @@ import java.io.IOException;
 public class StateRinging extends State {
 
     private StateHandler handler = StateHandler.getInstance();
-    private Server server = handler.getServer();
-
-    @Override
-    public synchronized State sendTRO() {
-        try {
-            server.write(Protocol.TRO);
-        } catch (IOException e) {
-            System.err.println(e.getMessage());
-            return new StateReady();
-        }
-        return new StateRinging();
-    }
 
     @Override
     public synchronized State hangup() {
