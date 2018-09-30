@@ -21,8 +21,6 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
 
-        System.out.println("testing commit from stationary pc");
-
         StateHandler stateHandler = StateHandler.getInstance();
 
         stateHandler.setState(new StateReady(null));
