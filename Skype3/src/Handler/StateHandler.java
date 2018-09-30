@@ -14,9 +14,20 @@ public class StateHandler {
     private boolean debugEnabled = false;
 
     private UserInput userInput;
-    public Server server;
-    public Client client;
+    private Server server;
+    private Client client;
 
+    public synchronized Client getClient() {
+        return client;
+    }
+
+    public synchronized void setClient(Client client) {
+        this.client = client;
+    }
+
+    public synchronized Server getServer() {
+        return server;
+    }
 
     public static StateHandler getInstance() {
         return ourInstance;
@@ -114,6 +125,10 @@ public class StateHandler {
         }
     }
 
+    public synchronized void error() {
+        setState(new StateReady());
+    }
+
     public void parseCommand(String line) {
         if (line.length() == 0)
             return;
@@ -168,28 +183,23 @@ public class StateHandler {
         try {
             switch (line) {
                 case Protocol.INVITE: {
-                    state.recievedInvite();
-                    //setState(new StateRinging());
+                    setState(state.recievedInvite());   // need to pass argument for invite
                 } break;
                 case Protocol.TRO: {
-                    state.recievedTRO();
-                    //setState(new StateSpeaking());
+                    setState(state.recievedTRO());
                 } break;
                 case Protocol.TRO_ACK: {
-                    state.recievedTROAck();
-                    //setState(new StateSpeaking());
+                    setState(state.recievedTROAck());
                 }break;
                 case Protocol.BYE: {
-                    state.recievedBye();
-                    //setState(new StateReady(state));
+                    setState(state.recievedBye());
                 } break;
                 case Protocol.OK: {
-                    state.recievedByeAck();
-                    //setState(new StateReady(state));
+                    setState(state.recievedByeAck());
                 } break;
                 default: {
                     System.err.println("ProtocolDataUnit failure.");
-                    //setState(new StateReady(state));
+                    setState(new StateReady());
                 }
             }
         } catch (Exception e) {

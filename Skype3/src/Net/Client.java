@@ -21,7 +21,6 @@ public class Client extends Thread implements Closeable {
 
     public void connect(Socket socket) throws IOException {
         this.socket = socket;
-
         out = new PrintWriter(socket.getOutputStream(), true);
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         start();
@@ -43,9 +42,10 @@ public class Client extends Thread implements Closeable {
             run = true;
             while (run) {
                 String line = in.readLine();
-                if (line == null) break;
-
-                //stateHandler.parseProtocolDataUnit(line);
+                if (line == null) {
+                    break;
+                }
+                stateHandler.parseProtocolDataUnit(line);
                 System.out.println("Client r/ " + line);
             }
         } catch (IOException | NullPointerException e) {
@@ -56,7 +56,6 @@ public class Client extends Thread implements Closeable {
             if (run) close();
         }
     }
-
 
     public synchronized void write(String msg) throws IOException {
         System.out.println("Client w/ " + msg);
@@ -79,7 +78,9 @@ public class Client extends Thread implements Closeable {
             socket.close();
             out.close();
             in.close();
-            System.out.println("Client closed.");
+            System.out.println("Client closed!");
+            stateHandler.setClient(null);
+            stateHandler.error();
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }

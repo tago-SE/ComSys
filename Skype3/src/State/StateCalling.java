@@ -6,14 +6,12 @@ import java.io.IOException;
 
 public class StateCalling extends State {
 
-    private StateHandler handler = StateHandler.getInstance();
-    private Client client;
+    private final Client client;
 
     public StateCalling() {
-        client = handler.client;
+        client = StateHandler.getInstance().getClient();
     }
 
-    @Override
     public synchronized State recievedTRO() {
         try {
             client.write(Protocol.TRO_ACK);

@@ -34,6 +34,10 @@ public class Server extends Thread implements Closeable {
         return port;
     }
 
+    public synchronized boolean hasConnection() {
+        return clientSocket != null;
+    }
+
     private void serverStartedMessage(int port) throws IOException{
         Socket socket = null;
         try {
@@ -60,14 +64,18 @@ public class Server extends Thread implements Closeable {
     }
 
     public synchronized void dropClient() {
+        if (clientSocket == null)
+            return;
         try {
             clientSocket.close();
+
             out.close();
             in.close();
-            clientSocket = null;
             System.out.println("Server: Client disconnected");
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            clientSocket = null;
         }
     }
 
@@ -101,18 +109,19 @@ public class Server extends Thread implements Closeable {
                             try {
                                 String line = in.readLine();
                                 if (line == null) {
-                                    dropClient();
-                                    return;
+                                    close();
+                                    break;
                                 }
                                 System.out.println("Server r/" + line);
-                                //stateHandler.parseProtocolDataUnit(line);
+                                stateHandler.parseProtocolDataUnit(line);
                             } catch (IOException e) {
-                                if (e instanceof SocketException)
-                                    System.err.println(e.getMessage());
-                                else e.printStackTrace();
-                                dropClient();
-                                break;
-                               // stateHandler.error();
+                                try {
+                                    close();
+                                } catch (IOException e1) {
+                                    e1.printStackTrace();
+                                } finally {
+                                    break;
+                                }
                             }
                         }
                     }).start();
@@ -130,10 +139,10 @@ public class Server extends Thread implements Closeable {
         }
     }
 
-
     @Override
-    public void close() throws IOException {
+    public synchronized void close() throws IOException {
         run = false;
-        serverSocket.close();
+        dropClient();
+        stateHandler.error();
     }
 }

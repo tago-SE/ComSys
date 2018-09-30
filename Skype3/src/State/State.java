@@ -7,6 +7,8 @@ import java.net.Socket;
 
 public abstract class State {
 
+
+
     private State getError(String msg) {
         System.err.println(this.getClass().getSimpleName() + ": IllegalStateException " + msg);
         return new StateReady();
@@ -46,16 +48,16 @@ public abstract class State {
     }
 
 
-    public void recievedBye() throws IOException {
-        throw new IllegalStateException();
+    public State recievedBye() throws IOException {
+        return getError("recievedBye");
     }
 
     public State sendBye() {
         return getError("sendBye");
     }
 
-    public void recievedByeAck() {
-        throw new IllegalStateException();
+    public State recievedByeAck() {
+        return getError("recievedByeAck");
     }
 
     public void sendByeAck() {

@@ -10,7 +10,7 @@ import java.io.IOException;
 public class StateRinging extends State {
 
     private StateHandler handler = StateHandler.getInstance();
-    private Server server = handler.server;
+    private Server server = handler.getServer();
 
     @Override
     public synchronized State sendTRO() {
