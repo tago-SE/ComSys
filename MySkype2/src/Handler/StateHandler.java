@@ -64,20 +64,27 @@ public class StateHandler {
         try {
             String name = args[1];
             int port = Integer.parseInt(args[2]);
-            if (port == server.getPort()) {
-                System.err.println("Cannot connect to self.");
-                return;
-            }
+            //if (port == server.getPort()) {
+                //System.err.println("Cannot connect to self.");
+               // return;
+            //}
             client.connect(name, port);
             System.out.println("Client connecting to: " + name + " on port " + port + ".");
-        } catch (IOException e) {
+        } catch (ArrayIndexOutOfBoundsException bounds) {
+            return;
+        }
+        catch (IOException e) {
             e.printStackTrace();
+             if (client != null)
+                 client.close();
+            client = null;
         }
     }
 
     private synchronized void disconnect() {
         client.close();
         client = null;
+
     }
 
     public void parseCommand(String line) {

@@ -13,8 +13,13 @@ public class Server extends Thread implements Closeable {
     private ServerSocket serverSocket;
     private int port;
 
-    private Client client = null;
+    //private Client client = null;
     private boolean run;
+    private Socket clientSocket = null;
+    private BufferedReader in ;
+    private PrintWriter out;
+
+
 
     public Server(StateHandler handler, int port) {
         stateHandler = handler;
@@ -45,14 +50,28 @@ public class Server extends Thread implements Closeable {
     }
 
     private synchronized boolean handleIncomingConnections(Socket socket ) throws IOException {
-        if (client != null){
+        if (clientSocket != null){
             return false;
         }
-        client = new Client(stateHandler);
-        client.connect(socket);
+        clientSocket = socket;
+        in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        out = new PrintWriter(clientSocket.getOutputStream(), true);
+        //client = new Client(stateHandler);
+        //client.connect(socket);
         return true;
     }
 
+    public synchronized void dropClient() {
+        try {
+            clientSocket.close();
+            out.close();
+            in.close();
+            clientSocket = null;
+            System.out.println("Server: Client disconnected");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     @Override
     public void run() {
@@ -66,6 +85,25 @@ public class Server extends Thread implements Closeable {
                     continue;
                 } else {
                     System.out.println("Server: Peer accepted");
+                    new Thread(()->{
+                        while (true) {
+                            try {
+                                String line = in.readLine();
+                                if (line == null) {
+                                    dropClient();
+                                    return;
+                                }
+                                System.out.println("Server r/" + line);
+                                //stateHandler.parseProtocolDataUnit(line);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                dropClient();
+                                break;
+                               // stateHandler.error();
+                            }
+                        }
+                    }).start();
+
                 }
             }
         } catch (IOException e) {
