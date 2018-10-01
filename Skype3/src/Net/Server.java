@@ -67,16 +67,15 @@ public class Server extends Thread implements Closeable {
         if (clientSocket == null)
             return;
         try {
-            clientSocket.close();
-
             out.close();
             in.close();
-            System.out.println("Server: Client disconnected");
+            clientSocket.close();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
             clientSocket = null;
         }
+        System.out.println("Server: Client disconnected");
     }
 
     public synchronized void setTimeout(int time) throws SocketException {
@@ -92,6 +91,23 @@ public class Server extends Thread implements Closeable {
         }
     }
 
+    public synchronized void startClientThread() {
+        new Thread(()->{
+            String line;
+            try {
+                while ((line = in.readLine()) != null) {
+                    System.out.println("Server r/" + line);
+                    stateHandler.parseProtocolDataUnit(line);
+                }
+            } catch (IOException e) {
+                System.err.println(e.getMessage());
+            } finally {
+                dropClient();
+            }
+            System.out.println("Client thread terminated.");
+        }).start();
+    }
+
     @Override
     public void run() {
         run = true;
@@ -104,28 +120,7 @@ public class Server extends Thread implements Closeable {
                     continue;
                 } else {
                     System.out.println("Server: Peer accepted");
-                    new Thread(()->{
-                        while (true) {
-                            try {
-                                String line = in.readLine();
-                                if (line == null) {
-                                    close();
-                                    break;
-                                }
-                                System.out.println("Server r/" + line);
-                                stateHandler.parseProtocolDataUnit(line);
-                            } catch (IOException e) {
-                                try {
-                                    close();
-                                } catch (IOException e1) {
-                                    e1.printStackTrace();
-                                } finally {
-                                    break;
-                                }
-                            }
-                        }
-                    }).start();
-
+                    startClientThread();
                 }
             }
         } catch (IOException e) {

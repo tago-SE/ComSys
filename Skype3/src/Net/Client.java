@@ -62,6 +62,7 @@ public class Client extends Thread implements Closeable {
         try {
             out.println(msg);
         } catch (Exception e) {
+            e.printStackTrace();
             close();
             throw new IOException();    // Not sure if used/needed
         }
