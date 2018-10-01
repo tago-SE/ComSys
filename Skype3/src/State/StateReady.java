@@ -4,6 +4,7 @@ import Handler.StateHandler;
 import Net.*;
 
 import java.io.IOException;
+import java.net.SocketException;
 
 public class StateReady extends State {
 
@@ -11,6 +12,8 @@ public class StateReady extends State {
     private Client client;
     private Server server;
     private AudioStreamUDP audio;
+
+    private static final int TIME_OUT = 5000;
 
     public StateReady() {
         handler = StateHandler.getInstance();
@@ -49,6 +52,7 @@ public class StateReady extends State {
         try {
             client.connect(name, port);
             handler.setClient(client);
+            client.setTimeout(TIME_OUT);
             client.write(Protocol.INVITE + " " + handler.getAudioStreamUDP().getLocalPort());
         } catch (IOException e) {
             System.err.println(e.getMessage());
@@ -62,6 +66,11 @@ public class StateReady extends State {
 
     public synchronized State recievedInvite(int localPort) {
         handler.remoteAudioPort = localPort;
+        try {
+            server.setTimeout(TIME_OUT);
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
         return new StateRinging();
     }
 

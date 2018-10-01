@@ -3,6 +3,7 @@ import Handler.*;
 import Net.*;
 
 import java.io.IOException;
+import java.net.InetAddress;
 
 public class StateCalling extends State {
 
@@ -19,7 +20,7 @@ public class StateCalling extends State {
         try {
             String address = client.socket.getInetAddress().getHostAddress();
             System.out.println("Audio connecting to: " + address + ":" + port);
-            audio.connectTo(client.socket.getInetAddress(), port);
+            audio.connectTo(InetAddress.getByName(address), port);
         } catch (IOException e) {
             e.printStackTrace();
             return new StateReady();

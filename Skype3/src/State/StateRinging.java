@@ -7,6 +7,8 @@ import Net.Protocol;
 import Net.Server;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.SocketException;
 
 public class StateRinging extends State {
 
@@ -36,7 +38,8 @@ public class StateRinging extends State {
             String address = server.getClientSocket().getInetAddress().getHostAddress();
             int port = handler.remoteAudioPort;
             System.out.println("Audio connecting to: " + address + ":" + port);
-            audio.connectTo(server.getClientSocket().getInetAddress(), port);
+            audio.connectTo(InetAddress.getByName(address), port);
+            // audio.connectTo(server.getClientSocket().getInetAddress(), port);
         } catch (IOException e) {
             e.printStackTrace();
             return new StateReady();
@@ -47,6 +50,11 @@ public class StateRinging extends State {
 
     @Override
     public synchronized State recievedTROAck() {
+        try {
+            server.setTimeout(0);
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
         return new StateSpeaking();
     }
 }

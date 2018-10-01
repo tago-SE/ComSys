@@ -16,6 +16,13 @@ public class StateSpeaking extends State {
 
     public StateSpeaking() {
         audio.startStreaming();
+        try {
+            if (client != null)
+                client.setTimeout(0);
+            server.setTimeout(0);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

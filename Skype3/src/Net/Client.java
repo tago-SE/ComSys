@@ -5,6 +5,7 @@ import Handler.StateHandler;
 import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 
 public class Client extends Thread implements Closeable {
 
@@ -49,7 +50,7 @@ public class Client extends Thread implements Closeable {
                 stateHandler.parseProtocolDataUnit(line);
             }
         } catch (IOException | NullPointerException e) {
-            if (e instanceof SocketException)
+            if (e instanceof SocketException || e instanceof SocketTimeoutException)
                 System.err.println(e.getMessage());
             else e.printStackTrace();
         } finally {

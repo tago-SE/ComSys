@@ -80,6 +80,7 @@ public class Server extends Thread implements Closeable {
             clientSocket = null;
         }
         System.out.println("Server: Client disconnected");
+        stateHandler.error();
     }
 
     public synchronized void setTimeout(int time) throws SocketException {
@@ -142,6 +143,5 @@ public class Server extends Thread implements Closeable {
     public synchronized void close() throws IOException {
         run = false;
         dropClient();
-        stateHandler.error();
     }
 }
