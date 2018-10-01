@@ -12,6 +12,11 @@ public class StateSpeaking extends State {
     private StateHandler handler = StateHandler.getInstance();
     private Server server = handler.getServer();
     private Client client = handler.getClient();
+    private AudioStreamUDP audio = handler.getAudioStreamUDP();
+
+    public StateSpeaking() {
+        audio.startStreaming();
+    }
 
     @Override
     public synchronized State hangup() {

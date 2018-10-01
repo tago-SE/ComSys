@@ -7,12 +7,23 @@ import java.io.IOException;
 public class StateCalling extends State {
 
     private final Client client;
+    private final AudioStreamUDP audio;
 
     public StateCalling() {
-        client = StateHandler.getInstance().getClient();
+        StateHandler handler = StateHandler.getInstance();
+        client = handler.getClient();
+        audio = handler.getAudioStreamUDP();
     }
 
-    public synchronized State recievedTRO() {
+    public synchronized State recievedTRO(int port) {
+        try {
+            String address = client.socket.getLocalAddress().toString();
+            System.out.println("Audio connecting to: " + address + ":" + port);
+            audio.connectTo(client.socket.getLocalAddress(), port);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new StateReady();
+        }
         try {
             client.write(Protocol.TRO_ACK);
         } catch (IOException e) {

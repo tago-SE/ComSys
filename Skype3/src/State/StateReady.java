@@ -10,17 +10,22 @@ public class StateReady extends State {
     private StateHandler handler;
     private Client client;
     private Server server;
+    private AudioStreamUDP audio;
 
     public StateReady() {
         handler = StateHandler.getInstance();
         server = handler.getServer();
         client = handler.getClient();
+        audio = handler.getAudioStreamUDP();
+        handler.remoteAudioPort = 0;
         if (client != null) {
             client.close();
             client = null;
         }
         if (server != null)
             server.dropClient();
+
+        audio.stopStreaming();
     }
 
     @Override
@@ -44,7 +49,7 @@ public class StateReady extends State {
         try {
             client.connect(name, port);
             handler.setClient(client);
-            client.write(Protocol.INVITE);
+            client.write(Protocol.INVITE + " " + handler.getAudioStreamUDP().getLocalPort());
         } catch (IOException e) {
             System.err.println(e.getMessage());
             return new StateReady();
@@ -55,7 +60,8 @@ public class StateReady extends State {
         return new StateCalling();
     }
 
-    public synchronized State recievedInvite() {
+    public synchronized State recievedInvite(int localPort) {
+        handler.remoteAudioPort = localPort;
         return new StateRinging();
     }
 

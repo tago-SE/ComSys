@@ -38,6 +38,10 @@ public class Server extends Thread implements Closeable {
         return clientSocket != null;
     }
 
+    public synchronized Socket getClientSocket() {
+        return clientSocket;
+    }
+
     private void serverStartedMessage(int port) throws IOException{
         Socket socket = null;
         try {

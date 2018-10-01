@@ -1,5 +1,6 @@
 package Handler;
 
+import Net.AudioStreamUDP;
 import Net.Client;
 import Net.Protocol;
 import Net.Server;
@@ -16,6 +17,8 @@ public class StateHandler {
     private UserInput userInput;
     private Server server;
     private Client client;
+    private AudioStreamUDP audioStreamUDP;
+    public int remoteAudioPort;
 
     public synchronized Client getClient() {
         return client;
@@ -34,6 +37,16 @@ public class StateHandler {
     }
 
     private StateHandler() {
+        try {
+            audioStreamUDP = new AudioStreamUDP();
+        } catch (IOException e) {
+            System.err.println("Failed to Create AudioStreamUDP");
+            stop();
+        }
+    }
+
+    public AudioStreamUDP getAudioStreamUDP() {
+        return audioStreamUDP;
     }
 
     public final void startUserInput() {
@@ -49,11 +62,12 @@ public class StateHandler {
             if (userInput != null) userInput.close();
             if (server != null) server.close();
             if (client != null) client.close();
+            if (audioStreamUDP != null)
+                audioStreamUDP.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
 
 
     public synchronized void setState(State state) {
@@ -64,6 +78,8 @@ public class StateHandler {
     public synchronized State getState() {
         return state;
     }
+
+
 
     private void parseDebugCommands(String[] args) {
 
@@ -185,12 +201,23 @@ public class StateHandler {
 
     public synchronized void parseProtocolDataUnit(String line) {
         try {
-            switch (line) {
+            String[] args = line.split(" ");
+            switch (args[0]) {
                 case Protocol.INVITE: {
-                    setState(state.recievedInvite());   // need to pass argument for invite
+                    try {
+                        setState(state.recievedInvite(Integer.parseInt(args[1])));   // need to pass argument for invite
+                    } catch (Exception e) {
+                        System.err.println("No AudioUDP port provided.");
+                        setState(new StateReady());
+                    }
                 } break;
                 case Protocol.TRO: {
-                    setState(state.recievedTRO());
+                    try {
+                        setState(state.recievedTRO(Integer.parseInt(args[1])));
+                    } catch (Exception e) {
+                        System.err.println("No AudioUDP port provided.");
+                        setState(new StateReady());
+                    }
                 } break;
                 case Protocol.TRO_ACK: {
                     setState(state.recievedTROAck());

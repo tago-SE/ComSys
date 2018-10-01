@@ -14,7 +14,7 @@ public abstract class State {
         return new StateReady();
     }
 
-    public State recievedInvite() {
+    public State recievedInvite(int port) {
        return getError("recievedInvite");
     }
 
@@ -22,10 +22,9 @@ public abstract class State {
         return getError("sendInvite");
     }
 
-    public State recievedTRO() {
+    public State recievedTRO(int port) {
         return getError("recievedTRO");
     }
-
 
     public State sendTRO() {
         return getError("sendTRO");
@@ -38,7 +37,6 @@ public abstract class State {
     public State sendTROAck() {
         return getError("sendTROAck");
     }
-
 
     public State hangup() {
         return getError("hangup");
