@@ -50,11 +50,6 @@ public class StateRinging extends State {
 
     @Override
     public synchronized State recievedTROAck() {
-        try {
-            server.setTimeout(0);
-        } catch (SocketException e) {
-            e.printStackTrace();
-        }
         return new StateSpeaking();
     }
 }

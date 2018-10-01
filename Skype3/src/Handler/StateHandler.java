@@ -126,7 +126,7 @@ public class StateHandler {
     }
 
     // Debug
-    private synchronized void clientSend(String[] args) {
+    private synchronized void debugSend(String[] args) {
         if (args.length < 1)
             return;
         String msg = "";
@@ -134,11 +134,16 @@ public class StateHandler {
             msg += args[i] + " ";
         }
         try {
-            client.write(msg);
+            if (server.hasConnection()) {
+                server.write(msg);
+            } else if (client != null) {
+                client.write(msg);
+            }
+            else {
+                System.err.println("No currently connected client.");
+            }
         } catch (IOException e) {
             e.printStackTrace();
-        } catch (NullPointerException e) {
-            System.err.println("No currently connected client.");
         }
     }
 
@@ -181,10 +186,8 @@ public class StateHandler {
                                 case Debug.DISCONNECT:
                                     disconnect();
                                     break;
-                                case Debug.CLIENT_SEND:
-                                    clientSend(args);
-                                    break;
-                                case Debug.SERVER_SEND:
+                                case Debug.SEND:
+                                    debugSend(args);
                                     break;
                                 default:
                                     System.err.println("Invalid Command.");
@@ -208,7 +211,7 @@ public class StateHandler {
                     try {
                         setState(state.recievedInvite(Integer.parseInt(args[1])));   // need to pass argument for invite
                     } catch (Exception e) {
-                        System.err.println("No AudioUDP port provided.");
+                        System.err.println("No AudioUDP port provided (1).");
                         setState(new StateReady());
                     }
                 } break;
@@ -216,7 +219,7 @@ public class StateHandler {
                     try {
                         setState(state.recievedTRO(Integer.parseInt(args[1])));
                     } catch (Exception e) {
-                        System.err.println("No AudioUDP port provided.");
+                        System.err.println("No AudioUDP port provided (2).");
                         setState(new StateReady());
                     }
                 } break;
@@ -239,6 +242,4 @@ public class StateHandler {
             setState(new StateReady());
         }
     }
-
-
 }

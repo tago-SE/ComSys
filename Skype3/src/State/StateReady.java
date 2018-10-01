@@ -13,7 +13,7 @@ public class StateReady extends State {
     private Server server;
     private AudioStreamUDP audio;
 
-    private static final int TIME_OUT = 5000;
+    private static final int TIME_OUT = 10000;
 
     public StateReady() {
         handler = StateHandler.getInstance();
@@ -25,9 +25,10 @@ public class StateReady extends State {
             client.close();
             client = null;
         }
-        if (server != null)
+        if (server != null) {
             server.dropClient();
-
+            server.setTimeout(TIME_OUT);
+        }
         audio.stopStreaming();
     }
 
@@ -66,11 +67,6 @@ public class StateReady extends State {
 
     public synchronized State recievedInvite(int localPort) {
         handler.remoteAudioPort = localPort;
-        try {
-            server.setTimeout(TIME_OUT);
-        } catch (SocketException e) {
-            e.printStackTrace();
-        }
         return new StateRinging();
     }
 

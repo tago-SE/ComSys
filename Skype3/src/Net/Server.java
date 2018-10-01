@@ -83,8 +83,14 @@ public class Server extends Thread implements Closeable {
         stateHandler.error();
     }
 
-    public synchronized void setTimeout(int time) throws SocketException {
-        clientSocket.setSoTimeout(time);
+    public synchronized void setTimeout(int time) {
+        if (clientSocket != null) {
+            try {
+                clientSocket.setSoTimeout(time);
+            } catch (SocketException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public synchronized void write(String msg) throws IOException {
