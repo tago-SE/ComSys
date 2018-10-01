@@ -15,7 +15,7 @@ public class StateReady extends State {
     public StateReady() {
         handler = StateHandler.getInstance();
         server = handler.getServer();
-        client = handler.getClient();
+        client = handler.getClient();               // Deadlock risk?
         audio = handler.getAudioStreamUDP();
         handler.remoteAudioPort = 0;
         if (client != null) {

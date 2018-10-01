@@ -17,9 +17,9 @@ public class StateCalling extends State {
 
     public synchronized State recievedTRO(int port) {
         try {
-            String address = client.socket.getLocalAddress().toString();
+            String address = client.socket.getInetAddress().getHostAddress();
             System.out.println("Audio connecting to: " + address + ":" + port);
-            audio.connectTo(client.socket.getLocalAddress(), port);
+            audio.connectTo(client.socket.getInetAddress(), port);
         } catch (IOException e) {
             e.printStackTrace();
             return new StateReady();

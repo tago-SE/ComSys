@@ -39,6 +39,7 @@ public class StateHandler {
     private StateHandler() {
         try {
             audioStreamUDP = new AudioStreamUDP();
+            System.out.println("Current Audio Port: " + audioStreamUDP.getLocalPort());
         } catch (IOException e) {
             System.err.println("Failed to Create AudioStreamUDP");
             stop();
