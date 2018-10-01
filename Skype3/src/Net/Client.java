@@ -45,8 +45,8 @@ public class Client extends Thread implements Closeable {
                 if (line == null) {
                     break;
                 }
-                stateHandler.parseProtocolDataUnit(line);
                 System.out.println("Client r/ " + line);
+                stateHandler.parseProtocolDataUnit(line);
             }
         } catch (IOException | NullPointerException e) {
             if (e instanceof SocketException)

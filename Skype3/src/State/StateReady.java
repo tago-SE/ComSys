@@ -49,12 +49,6 @@ public class StateReady extends State {
     }
 
     public synchronized State recievedInvite() {
-        try {
-            server.write(Protocol.TRO);
-        } catch (IOException e) {
-            System.err.println(e.getMessage());
-            return new StateReady();
-        }
         return new StateRinging();
     }
 

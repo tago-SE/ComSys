@@ -4,7 +4,7 @@ public class StateHangingUp extends State {
 
     private static final int HANGUP_TIME = 150;
 
-    public State recievedByeAck() {
+    public synchronized State recievedByeAck() {
         try {
             Thread.sleep(HANGUP_TIME);
         } catch (InterruptedException e) {

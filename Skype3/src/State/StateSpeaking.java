@@ -30,7 +30,7 @@ public class StateSpeaking extends State {
         return new StateHangingUp();
     }
 
-    public State recievedBye() {
+    public synchronized State recievedBye() {
         if (client != null) try {
             client.write(Protocol.OK);
         } catch (IOException e) {
