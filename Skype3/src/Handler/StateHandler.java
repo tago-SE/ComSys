@@ -140,7 +140,11 @@ public class StateHandler {
                         stop();
                         break;
                     case Command.CALL:
-                        setState(state.sendInvite(args[1], Integer.parseInt(args[2])));
+                        if (args.length < 3) {
+                            System.err.println("Too few arguments.");
+                            return;
+                        }
+                        setState(state.sendInvite(args[1], args[2]));
                         break;
                     case Command.ANSWER:
                         setState(state.sendTRO());

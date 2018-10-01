@@ -24,13 +24,20 @@ public class StateReady extends State {
     }
 
     @Override
-    public synchronized State sendInvite(String name, int port)  {
+    public synchronized State sendInvite(String name, String portString)  {
         if (client != null) {
             System.err.println("Invite has already been sent previously.");
             return new StateReady();
         }
-        if (server.getPort() == port) {
-            System.err.println("Cannot call peer on same port.");
+        int port = 0;
+        try {
+            port = Integer.parseInt(portString);
+            if (server.getPort() == port) {
+                System.err.println("Cannot call peer on same port.");
+                return new StateReady();
+            }
+        } catch (Exception e) {
+            System.err.println("Invalid argument for port number.");
             return new StateReady();
         }
         client = new Client(handler);

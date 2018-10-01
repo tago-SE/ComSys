@@ -18,7 +18,7 @@ public abstract class State {
        return getError("recievedInvite");
     }
 
-    public State sendInvite(String name, int port) {
+    public State sendInvite(String name, String port) {
         return getError("sendInvite");
     }
 
