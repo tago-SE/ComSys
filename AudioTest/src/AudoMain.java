@@ -6,6 +6,7 @@ import java.util.Scanner;
 
 public class AudoMain {
 
+    /*
     public static void main(String[] args) {
         try {
             AudioStreamUDP audio = new AudioStreamUDP();
@@ -31,4 +32,5 @@ public class AudoMain {
             e.printStackTrace();
         }
     }
+    */
 }

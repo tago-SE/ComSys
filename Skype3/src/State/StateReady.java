@@ -13,7 +13,7 @@ public class StateReady extends State {
     private Server server;
     private AudioStreamUDP audio;
 
-    private static final int TIME_OUT = 10000;
+    private static final int TIME_OUT = 15000;
 
     public StateReady() {
         handler = StateHandler.getInstance();

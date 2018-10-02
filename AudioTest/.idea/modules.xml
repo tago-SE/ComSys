@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/MySkype.iml" filepath="$PROJECT_DIR$/MySkype.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/AudioTest.iml" filepath="$PROJECT_DIR$/.idea/AudioTest.iml" />
     </modules>
   </component>
 </project>
