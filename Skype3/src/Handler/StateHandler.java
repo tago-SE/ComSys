@@ -11,7 +11,7 @@ import java.io.IOException;
 public class StateHandler {
 
     private static StateHandler ourInstance = new StateHandler();
-    private State state;
+    private State state; //nuvarande stadiet man är i
     private boolean debugEnabled = false;
 
     private UserInput userInput;
@@ -169,6 +169,7 @@ public class StateHandler {
                         setState(state.sendInvite(args[1], args[2]));
                         break;
                     case Command.ANSWER:
+                        //samma sak som this.state = state.sendTRO(); (koll i metoden setState längre upp
                         setState(state.sendTRO());
                         break;
                     case Command.HANGUP:
