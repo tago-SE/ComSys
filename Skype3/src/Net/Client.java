@@ -27,6 +27,10 @@ public class Client extends Thread implements Closeable {
         start();
     }
 
+    public synchronized boolean isConnected() {
+        return socket == null;
+    }
+
     public void connect(String name, int port) throws IOException {
         System.out.println("Client connecting/ " + name + ":" + port);
         this.port = port;
@@ -85,6 +89,10 @@ public class Client extends Thread implements Closeable {
             stateHandler.error();
         } catch (IOException ioe) {
             ioe.printStackTrace();
+        } finally {
+            socket  = null;
+            out = null;
+            in = null;
         }
     }
 }
