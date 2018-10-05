@@ -11,3 +11,4 @@ public class Main {
         handler.setState(new StateReady());
     }
 }
+
