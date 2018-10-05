@@ -39,17 +39,11 @@ public class StateRinging extends State {
             int port = handler.remoteAudioPort;
             System.out.println("Audio connecting to: " + address + ":" + port);
             audio.connectTo(InetAddress.getByName(address), port);
-            // audio.connectTo(server.getClientSocket().getInetAddress(), port);
         } catch (IOException e) {
             e.printStackTrace();
             return new StateReady();
         }
-        return new StateRinging();
+        return new StateWaiting();
     }
 
-
-    @Override
-    public synchronized State recievedTROAck() {
-        return new StateSpeaking();
-    }
 }
