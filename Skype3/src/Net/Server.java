@@ -56,7 +56,7 @@ public class Server extends Thread implements Closeable {
     }
 
     private synchronized boolean handleIncomingConnections(Socket socket ) throws IOException {
-        if (clientSocket != null && StateHandler.getInstance().getClient().isConnected()){
+        if (clientSocket != null || StateHandler.getInstance().getClient() != null){
             return false;
         }
         clientSocket = socket;
