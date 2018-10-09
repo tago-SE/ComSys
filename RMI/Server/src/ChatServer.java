@@ -130,6 +130,11 @@ public class ChatServer  extends UnicastRemoteObject implements ChatServerInt {
     }
 
     @Override
+    public synchronized boolean isAlive() {
+        return true;
+    }
+
+    @Override
     public synchronized void quit(ChatClientInt client)  throws RemoteException {
         disconnect(client);
     }
@@ -145,12 +150,34 @@ public class ChatServer  extends UnicastRemoteObject implements ChatServerInt {
         removeClient(client);
     }
 
+    public synchronized void findDeadClients() {
+        ArrayList<ChatClientInt> removedClients = new ArrayList<>();
+        for (ChatClientInt client : clients) {
+            try {
+                if (client.isAlive()) {
+
+                }
+            } catch (RemoteException e) {
+                removedClients.add(client);
+            }
+        }
+        for (ChatClientInt client: removedClients) {
+            removeClient(client);
+        }
+    }
+
     public static void main(String[] args) {
         try {
             java.rmi.registry.LocateRegistry.createRegistry(1099);
             ChatServerInt server = new ChatServer();
             Naming.rebind("rmi://localhost/myabc", server);
             System.out.println("Chat Server is ready.");
+            for (;;) {
+                ((ChatServer) server).findDeadClients();
+                try {
+                    Thread.sleep(2000);
+                } catch (Exception e) { }
+            }
         } catch (Exception e) {
             System.err.println("Chat Server failed: " + e.getMessage());
         }
