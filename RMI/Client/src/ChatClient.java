@@ -39,8 +39,24 @@ public class ChatClient extends UnicastRemoteObject implements ChatClientInt {
             server.connect(client);
             Scanner scan = new Scanner(System.in);
             run = true;
+
+             new Thread(() -> {
+                while (run) {
+                    try {
+                        Thread.sleep(100);
+                        if (run)
+                            server.isAlive();
+                    } catch (Exception e) {
+                        run = false;
+                        System.out.println("Server died.");
+                    }
+                }
+            }).start();
+
             while (run) {
                 String msg = scan.nextLine();
+                if (!run)
+                    break;
                 if (msg.length() == 0) {
                     continue;
                 }
