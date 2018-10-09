@@ -13,5 +13,6 @@ public interface ChatServerInt extends Remote {
     void quit(ChatClientInt client)  throws RemoteException;
     void connect(ChatClientInt client) throws RemoteException;
     void disconnect(ChatClientInt client) throws RemoteException;
+    boolean isAlive() throws RemoteException;
 
 }

@@ -24,6 +24,13 @@ public class ChatClient extends UnicastRemoteObject implements ChatClientInt {
         System.exit(0);
     }
 
+
+
+    @Override
+    public boolean isAlive() {
+        return true;
+    }
+
     public static void main(String[] args) {
         ChatClient client = null;
         try {
@@ -69,9 +76,9 @@ public class ChatClient extends UnicastRemoteObject implements ChatClientInt {
             System.err.println("Error: " + e.getMessage());
         } finally {
             try {
+                System.out.println("Shutting down...");
                 server.disconnect(client);
             } catch (Exception ee) {}
-            System.out.println("Shutting down...");
             System.exit(1);
         }
     }
